@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <main class="public-shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">Plithos</span>
+        <h1>Smart safety monitoring for schools.</h1>
+        <p>Plithos helps staff spot fights, fire hazards, and smoking in real time through a clean dashboard built around live cameras and fast alerts.</p>
+        <div class="hero-actions">
+          <a href="{{ url_for('login') }}" class="primary-btn">Get started</a>
+          <a href="{{ url_for('login') }}" class="ghost-btn">Login</a>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-head">
+          <span class="status-dot live"></span>
+          <span>Live monitoring</span>
+        </div>
+        <div class="hero-grid">
+          <article class="metric-card">
+            <span class="metric-label">Fight detection</span>
+            <strong>Real time</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Fire alerts</span>
+            <strong>Instant warning</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Smoking</span>
+            <strong>Tracked</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Dashboard</span>
+            <strong>Simple view</strong>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-grid">
+      <article class="feature-card">
+        <h2>See the right camera fast</h2>
+        <p>The dashboard focuses on one camera at a time, then switches attention when a live alert starts somewhere else.</p>
+      </article>
+      <article class="feature-card">
+        <h2>Keep the feed clean</h2>
+        <p>Warnings stay in the interface so the camera itself remains easy to watch.</p>
+      </article>
+      <article class="feature-card">
+        <h2>Stay informed</h2>
+        <p>Alert emails can include a quick summary and a CSV report, with rate limits to avoid inbox spam.</p>
+      </article>
+    </section>
+  </main>
+{% endblock %}
+

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ page_title }} | Plithos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='plithos_site.css') }}" />
+</head>
+<body data-theme="{{ current_user['theme'] if current_user else 'dark' }}">
+  <div class="page-wrap">
+    {% if current_user %}
+      <header class="topbar">
+        <a href="{{ url_for('dashboard') }}" class="brand">
+          <span class="brand-mark">P</span>
+          <span class="brand-copy">
+            <span class="eyebrow">School safety monitoring</span>
+            <strong>Plithos</strong>
+          </span>
+        </a>
+        <nav class="nav">
+          <a class="nav-link {% if active_page == 'dashboard' %}is-active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
+          <a class="nav-link {% if active_page == 'cameras' %}is-active{% endif %}" href="{{ url_for('cameras_page') }}">Cameras</a>
+          <a class="nav-link {% if active_page == 'logs' %}is-active{% endif %}" href="{{ url_for('logs') }}">Logs</a>
+          <a class="nav-link {% if active_page == 'settings' %}is-active{% endif %}" href="{{ url_for('settings') }}">Settings</a>
+        </nav>
+        <div class="topbar-meta">
+          <div class="meta-chip">
+            <span class="chip-label">{{ current_user['full_name'] }}</span>
+            <span class="chip-copy">{{ current_user['email'] }}</span>
+          </div>
+          <form method="post" action="{{ url_for('logout') }}">
+            <button type="submit" class="ghost-btn">Log out</button>
+          </form>
+        </div>
+      </header>
+    {% endif %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <section class="flash-stack">
+          {% for category, message in messages %}
+            <article class="flash flash-{{ category }}">{{ message }}</article>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+    <footer class="footer">
+      <span>© {{ current_year }} Plithos. All rights reserved.</span>
+    </footer>
+  </div>
+
+  {% block page_data %}{% endblock %}
+  <script src="{{ url_for('static', filename='plithos_site.js') }}"></script>
+</body>
+</html>

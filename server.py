@@ -46,7 +46,6 @@ except Exception as exc:  # pragma: no cover - import depends on optional local 
     API_IMPORT_ERROR = str(exc)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-TEMPLATES_DIR = os.path.join(HERE, "templates")
 DB_PATH = os.environ.get("PLITHOS_DB_PATH", os.path.join(HERE, "plithos.db"))
 JPEG_QUALITY = 64
 ACTIVE_SLEEP = 0.01
@@ -62,7 +61,7 @@ CAMERA_FRAME_WIDTH = 640
 CAMERA_FRAME_HEIGHT = 360
 TARGET_CAMERA_FPS = 30
 
-flask_app = Flask(__name__, template_folder=TEMPLATES_DIR, static_folder=HERE)
+flask_app = Flask(__name__)
 flask_app.secret_key = os.environ.get("PLITHOS_SECRET_KEY", "plithos-dev-secret")
 flask_app.config.update(
     SESSION_COOKIE_HTTPONLY=True,

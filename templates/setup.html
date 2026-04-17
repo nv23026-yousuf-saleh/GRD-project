@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <main class="content-shell narrow-shell">
+    <section class="panel page-panel">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Camera setup</span>
+          <h1 class="page-title">Name the cameras you want to monitor</h1>
+          <p class="page-copy">Each preview shows a connected camera. Add a name to keep it in the dashboard.</p>
+        </div>
+      </div>
+
+      <form method="post" class="stack-form" id="cameraSetupForm">
+        <div class="setup-grid">
+          {% if slots %}
+            {% for slot in slots %}
+              <article class="setup-card">
+                <div class="setup-preview">
+                  {% if slot.connected and slot.is_local %}
+                    <img
+                      alt="{{ slot.title }}"
+                      data-snapshot-url="{{ url_for('setup_preview', source_index=slot.source|int) }}"
+                      data-setup-preview
+                      src="{{ url_for('setup_preview', source_index=slot.source|int) }}"
+                    />
+                  {% elif slot.camera_id %}
+                    <img
+                      alt="{{ slot.title }}"
+                      data-snapshot-url="{{ url_for('snapshot_feed', camera_id=slot.camera_id) }}"
+                      data-setup-preview
+                      src="{{ url_for('snapshot_feed', camera_id=slot.camera_id) }}"
+                    />
+                  {% else %}
+                    <div class="preview-empty">Preview unavailable</div>
+                  {% endif %}
+                </div>
+                <div class="setup-card-body">
+                  <div class="setup-card-head">
+                    <strong>{{ slot.title }}</strong>
+                    <span class="camera-status {% if slot.connected %}online{% else %}offline{% endif %}">{{ "Connected" if slot.connected else "Offline" }}</span>
+                  </div>
+                  <input type="hidden" name="camera_source" value="{{ slot.source }}" />
+                  <label class="form-field">
+                    <span>Camera name</span>
+                    <input type="text" name="camera_name" value="{{ slot.name }}" placeholder="Canteen" />
+                  </label>
+                </div>
+              </article>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state large-empty">No cameras were found. Connect a camera and refresh this page.</div>
+          {% endif %}
+        </div>
+        <div class="toolbar-inline">
+          <button type="submit" class="primary-btn">Save and continue</button>
+        </div>
+      </form>
+    </section>
+  </main>
+{% endblock %}
+
+{% block page_data %}
+  <script>
+    window.PLITHOS = {
+      page: "setup",
+      previewRefreshMs: 1400
+    };
+  </script>
+{% endblock %}

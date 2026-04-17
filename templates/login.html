@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <main class="auth-shell">
+    <section class="auth-card">
+      <div class="auth-copy">
+        <span class="eyebrow">{% if first_user %}Create the first account{% else %}Welcome back{% endif %}</span>
+        <h1>{% if first_user %}Set up your Plithos account{% else %}Sign in to Plithos{% endif %}</h1>
+        <p>
+          {% if first_user %}
+            Create the admin account, then name your cameras and start monitoring.
+          {% else %}
+            Enter your email and password to open the dashboard.
+          {% endif %}
+        </p>
+      </div>
+
+      <form method="post" class="form-card">
+        <input type="hidden" name="next" value="{{ next_url }}" />
+        {% if first_user %}
+          <label class="form-field">
+            <span>Name</span>
+            <input type="text" name="full_name" placeholder="School admin" required />
+          </label>
+        {% endif %}
+        <label class="form-field">
+          <span>Email</span>
+          <input type="email" name="email" placeholder="name@school.edu" required />
+        </label>
+        <label class="form-field">
+          <span>Password</span>
+          <input type="password" name="password" placeholder="At least 8 characters" required />
+        </label>
+        {% if first_user %}
+          <label class="form-field">
+            <span>Confirm password</span>
+            <input type="password" name="confirm_password" placeholder="Repeat password" required />
+          </label>
+        {% endif %}
+        <button type="submit" class="primary-btn form-btn">{% if first_user %}Create account{% else %}Login{% endif %}</button>
+      </form>
+    </section>
+  </main>
+{% endblock %}

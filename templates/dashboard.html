@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <main class="content-shell">
+    <section class="alarm-banner" id="alarmBanner">
+      <div>
+        <span class="eyebrow" id="alarmKick">Live monitoring</span>
+        <h1 class="page-title" id="alarmTitle">No active alerts</h1>
+        <p class="page-copy" id="alarmCopy">The dashboard is watching your selected camera.</p>
+      </div>
+      <button type="button" class="danger-btn" id="muteAlarmBtn">Mute alarm</button>
+    </section>
+
+    <section class="dashboard-grid">
+      <div class="main-column">
+        <section class="panel page-panel">
+          <div class="toolbar-inline wrap">
+            <div>
+              <span class="eyebrow">Dashboard</span>
+              <h2 class="section-title">Live camera</h2>
+            </div>
+            <div class="camera-tabs" id="cameraTabs">
+              {% for camera in cameras %}
+                <button class="camera-tab {% if camera['id'] == selected_camera_id %}is-active{% endif %}" type="button" data-camera-id="{{ camera['id'] }}">{{ camera['name'] }}</button>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="feed-card">
+            <div class="feed-frame">
+              <div class="feed-meta">
+                <span class="feed-chip" id="feedLabel">Live</span>
+                <span class="feed-chip" id="feedTime">--</span>
+              </div>
+              <img id="dashboardFeed" alt="Selected camera feed" src="" />
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-card" id="violenceCard"><span class="metric-label">Violence</span><strong id="violenceValue">Clear</strong><p id="violenceCopy">No violence detected</p></article>
+            <article class="stat-card" id="smokingCard"><span class="metric-label">Smoking</span><strong id="smokingValue">0</strong><p id="smokingCopy">No smoking detections</p></article>
+            <article class="stat-card" id="fireCard"><span class="metric-label">Fire / smoke</span><strong id="fireValue">Clear</strong><p id="fireCopy">No fire or smoke detected</p></article>
+            <article class="stat-card" id="personsCard"><span class="metric-label">Persons</span><strong id="personsValue">0</strong><p id="personsCopy">Live people count</p></article>
+          </div>
+        </section>
+      </div>
+
+      <div class="side-column">
+        <section class="panel page-panel">
+          <div class="section-head compact-head">
+            <div>
+              <span class="eyebrow">Recent alerts</span>
+              <h2 class="section-title">Alerts</h2>
+            </div>
+            <button type="button" class="ghost-btn small-btn" id="exportAlertsBtn">Export CSV</button>
+          </div>
+          <div class="filter-row" id="alertFilters">
+            <button class="filter-btn is-active" type="button" data-filter="all">All</button>
+            <button class="filter-btn" type="button" data-filter="violence">Violence</button>
+            <button class="filter-btn" type="button" data-filter="smoking">Smoking</button>
+            <button class="filter-btn" type="button" data-filter="fire">Fire</button>
+          </div>
+          <div class="list-stack" id="alertList">
+            <div class="empty-state">No alerts yet.</div>
+          </div>
+        </section>
+
+        <section class="panel page-panel">
+          <div class="section-head compact-head">
+            <div>
+              <span class="eyebrow">Session</span>
+              <h2 class="section-title">Stats</h2>
+            </div>
+          </div>
+          <div class="session-grid">
+            <article class="mini-card"><span class="metric-label">Frames</span><strong id="framesValue">0</strong></article>
+            <article class="mini-card"><span class="metric-label">Alerts</span><strong id="alertsValue">0</strong></article>
+            <article class="mini-card"><span class="metric-label">FPS</span><strong id="fpsValue">--</strong></article>
+            <article class="mini-card"><span class="metric-label">Uptime</span><strong id="uptimeValue">00:00</strong></article>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+{% endblock %}
+
+{% block page_data %}
+  <script>
+    window.PLITHOS = {
+      page: "dashboard",
+      selectedCameraId: {{ selected_camera_id or 'null' }},
+      cameras: [
+        {% for camera in cameras %}
+          { id: {{ camera['id'] }}, name: {{ camera['name']|tojson }} }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ],
+      preferences: {{ preferences|tojson }}
+    };
+  </script>
+{% endblock %}
+

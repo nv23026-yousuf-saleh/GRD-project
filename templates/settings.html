@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <main class="content-shell narrow-shell">
+    <section class="panel page-panel stack-panel">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Settings</span>
+          <h1 class="page-title">Manage your account and alerts</h1>
+        </div>
+      </div>
+
+      <form method="post" class="stack-form">
+        <input type="hidden" name="action" value="profile" />
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Name</span>
+            <input type="text" name="full_name" value="{{ current_user['full_name'] }}" required />
+          </label>
+          <label class="form-field">
+            <span>Email</span>
+            <input type="email" name="email" value="{{ current_user['email'] }}" required />
+          </label>
+        </div>
+        <button type="submit" class="primary-btn">Save account</button>
+      </form>
+
+      <form method="post" class="stack-form">
+        <input type="hidden" name="action" value="preferences" />
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Theme</span>
+            <select name="theme">
+              <option value="dark" {% if current_user['theme'] == 'dark' %}selected{% endif %}>Dark</option>
+              <option value="light" {% if current_user['theme'] == 'light' %}selected{% endif %}>Light</option>
+            </select>
+          </label>
+        </div>
+        <div class="check-grid">
+          <label class="check-field"><input type="checkbox" name="sound_enabled" {% if current_user['sound_enabled'] %}checked{% endif %} /> <span>Enable sound alarm</span></label>
+          <label class="check-field"><input type="checkbox" name="auto_switch_alerts" {% if current_user['auto_switch_alerts'] %}checked{% endif %} /> <span>Auto-switch to alert camera</span></label>
+          <label class="check-field"><input type="checkbox" name="notifications_enabled" {% if current_user['notifications_enabled'] %}checked{% endif %} /> <span>Send email alerts</span></label>
+        </div>
+        <button type="submit" class="primary-btn">Save preferences</button>
+      </form>
+
+      <form method="post" class="stack-form">
+        <input type="hidden" name="action" value="alerts" />
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Report email</span>
+            <input type="email" name="report_email" value="{{ current_user['report_email'] or current_user['email'] }}" placeholder="alerts@school.edu" required />
+          </label>
+          <label class="form-field">
+            <span>Email subject</span>
+            <input type="text" name="alert_subject" value="{{ current_user['alert_subject'] or 'Plithos alert' }}" placeholder="Plithos alert" />
+          </label>
+          <label class="form-field wide-field">
+            <span>Email message</span>
+            <textarea name="alert_message" rows="4" placeholder="Plithos detected an incident. A report is attached.">{{ current_user['alert_message'] or 'Plithos detected an incident. A report is attached.' }}</textarea>
+          </label>
+        </div>
+        <div class="toolbar-inline">
+          <button type="submit" class="primary-btn">Save email settings</button>
+        </div>
+      </form>
+
+      <form method="post" class="stack-form">
+        <input type="hidden" name="action" value="password" />
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Current password</span>
+            <input type="password" name="current_password" placeholder="Current password" required />
+          </label>
+          <label class="form-field">
+            <span>New password</span>
+            <input type="password" name="new_password" placeholder="At least 8 characters" required />
+          </label>
+          <label class="form-field wide-field">
+            <span>Confirm new password</span>
+            <input type="password" name="confirm_password" placeholder="Repeat the new password" required />
+          </label>
+        </div>
+        <button type="submit" class="primary-btn">Change password</button>
+      </form>
+
+      <form method="post" class="stack-form">
+        <input type="hidden" name="action" value="cameras" />
+        <div class="section-head compact-head">
+          <div>
+            <span class="eyebrow">Cameras</span>
+            <h2 class="section-title">Rename your cameras</h2>
+          </div>
+        </div>
+        <div class="setup-grid">
+          {% if camera_slots %}
+            {% for slot in camera_slots %}
+              <article class="setup-card">
+                <div class="setup-preview">
+                  {% if slot.camera_id %}
+                    <img
+                      alt="{{ slot.title }}"
+                      data-snapshot-url="{{ url_for('snapshot_feed', camera_id=slot.camera_id) }}"
+                      data-setup-preview
+                      src="{{ url_for('snapshot_feed', camera_id=slot.camera_id) }}"
+                    />
+                  {% elif slot.connected and slot.is_local %}
+                    <img
+                      alt="{{ slot.title }}"
+                      data-snapshot-url="{{ url_for('setup_preview', source_index=slot.source|int) }}"
+                      data-setup-preview
+                      src="{{ url_for('setup_preview', source_index=slot.source|int) }}"
+                    />
+                  {% else %}
+                    <div class="preview-empty">Preview unavailable</div>
+                  {% endif %}
+                </div>
+                <div class="setup-card-body">
+                  <div class="setup-card-head">
+                    <strong>{{ slot.title }}</strong>
+                    <span class="camera-status {% if slot.connected %}online{% else %}offline{% endif %}">{{ "Connected" if slot.connected else "Offline" }}</span>
+                  </div>
+                  <input type="hidden" name="camera_source" value="{{ slot.source }}" />
+                  <label class="form-field">
+                    <span>Camera name</span>
+                    <input type="text" name="camera_name" value="{{ slot.name }}" placeholder="Classroom" />
+                  </label>
+                </div>
+              </article>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state large-empty">No cameras are connected right now.</div>
+          {% endif %}
+        </div>
+        <button type="submit" class="primary-btn">Save cameras</button>
+      </form>
+
+      <form method="post" class="stack-form">
+        <input type="hidden" name="action" value="send_test_email" />
+        <button type="submit" class="ghost-btn">Send test email</button>
+      </form>
+    </section>
+  </main>
+{% endblock %}
+
+{% block page_data %}
+  <script>
+    window.PLITHOS = {
+      page: "settings",
+      previewRefreshMs: 1400
+    };
+  </script>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <main class="content-shell">
+    <section class="panel page-panel">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">All cameras</span>
+          <h1 class="page-title">Live camera grid</h1>
+          <p class="page-copy">Open any camera in the dashboard when you need a closer look.</p>
+        </div>
+      </div>
+
+      <div class="camera-grid" id="cameraGrid">
+        {% for camera in cameras %}
+          <article class="camera-card" data-camera-card="{{ camera['id'] }}">
+            <div class="camera-card-head">
+              <strong>{{ camera['name'] }}</strong>
+              <span class="camera-status" data-camera-status="{{ camera['id'] }}">Live</span>
+            </div>
+            <div class="camera-preview">
+              <img
+                src="{{ url_for('snapshot_feed', camera_id=camera['id']) }}"
+                alt="{{ camera['name'] }}"
+                data-snapshot-url="{{ url_for('snapshot_feed', camera_id=camera['id']) }}"
+              />
+            </div>
+            <a href="{{ url_for('dashboard', camera=camera['id']) }}" class="ghost-btn full-width-btn">Open in dashboard</a>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+{% endblock %}
+
+{% block page_data %}
+  <script>
+    window.PLITHOS = {
+      page: "cameras",
+      cameras: [
+        {% for camera in cameras %}
+          { id: {{ camera['id'] }}, name: {{ camera['name']|tojson }} }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ],
+      preferences: {{ preferences|tojson }}
+    };
+  </script>
+{% endblock %}

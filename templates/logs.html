@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <main class="content-shell">
+    <section class="panel page-panel">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Logs</span>
+          <h1 class="page-title">Alert history</h1>
+          <p class="page-copy">Search by camera, type, date, or keyword.</p>
+        </div>
+      </div>
+
+      <form method="get" class="filter-form">
+        <label class="form-field">
+          <span>Camera</span>
+          <select name="camera">
+            <option value="">All cameras</option>
+            {% for camera in cameras %}
+              <option value="{{ camera['id'] }}" {% if filters.camera == camera['id'] %}selected{% endif %}>{{ camera['name'] }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="form-field">
+          <span>Type</span>
+          <select name="type">
+            <option value="all" {% if filters.type == 'all' %}selected{% endif %}>All types</option>
+            <option value="violence" {% if filters.type == 'violence' %}selected{% endif %}>Violence</option>
+            <option value="smoking" {% if filters.type == 'smoking' %}selected{% endif %}>Smoking</option>
+            <option value="fire" {% if filters.type == 'fire' %}selected{% endif %}>Fire</option>
+          </select>
+        </label>
+        <label class="form-field">
+          <span>From</span>
+          <input type="date" name="date_from" value="{{ filters.date_from }}" />
+        </label>
+        <label class="form-field">
+          <span>To</span>
+          <input type="date" name="date_to" value="{{ filters.date_to }}" />
+        </label>
+        <label class="form-field wide-field">
+          <span>Search</span>
+          <input type="text" name="search" value="{{ filters.search }}" placeholder="Camera name or detail" />
+        </label>
+        <button type="submit" class="primary-btn filter-submit">Apply</button>
+      </form>
+
+      <div class="charts-grid">
+        <article class="chart-card">
+          <span class="metric-label">By type</span>
+          <div class="bar-list">
+            {% for key, label in {'violence': 'Violence', 'smoking': 'Smoking', 'fire': 'Fire'}.items() %}
+              {% set count = type_summary.get(key, 0) %}
+              <div class="bar-row">
+                <span>{{ label }}</span>
+                <div class="bar-track"><div class="bar-fill" style="width: {{ (count * 100 / (type_max or 1)) if count else 0 }}%"></div></div>
+                <strong>{{ count }}</strong>
+              </div>
+            {% endfor %}
+          </div>
+        </article>
+        <article class="chart-card">
+          <span class="metric-label">Over time</span>
+          <div class="bar-list">
+            {% if trend %}
+              {% for item in trend %}
+                <div class="bar-row">
+                  <span>{{ item.label }}</span>
+                  <div class="bar-track"><div class="bar-fill" style="width: {{ (item.count * 100 / (trend_max or 1)) if item.count else 0 }}%"></div></div>
+                  <strong>{{ item.count }}</strong>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="empty-state">No alert data for the selected range.</div>
+            {% endif %}
+          </div>
+        </article>
+      </div>
+
+      <div class="table-wrap">
+        <table class="logs-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Camera</th>
+              <th>Type</th>
+              <th>Severity</th>
+              <th>Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if rows %}
+              {% for row in rows %}
+                <tr>
+                  <td>{{ row['created_at'][:19]|replace('T', ' ') }}</td>
+                  <td>{{ row['camera_name'] }}</td>
+                  <td>{{ row['event_type']|title }}</td>
+                  <td>{{ row['severity'] }}</td>
+                  <td>{{ row['detail'] }}</td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="5" class="empty-table">No matching alerts.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+{% endblock %}
+
