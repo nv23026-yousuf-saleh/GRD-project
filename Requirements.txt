@@ -1,0 +1,13 @@
+Flask>=3.0.0
+fastapi==0.135.1
+uvicorn==0.41.0
+python-multipart==0.0.22
+opencv-python-headless==4.13.0.92
+numpy>=1.26.0
+ultralytics==8.4.21
+onnxruntime==1.24.3
+tensorflow==2.21.0
+tf2onnx==1.17.0
+onnx==1.20.1
+mediapipe>=0.10.13
+yolov5==7.0.14
