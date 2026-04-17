@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plithos — Live Monitor</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="css/plithos.css" rel="stylesheet">
+</head>
+<body>
+<div class="overlay-bg" id="overlayBg"></div>
+
+<div class="shell" id="shell">
+
+  <!-- ══ SIDEBAR ═══════════════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="bi bi-shield-check"></i></div>
+      <span class="sidebar-logo-text">Plithos</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-title">Operations</div>
+      <a href="index.html" class="nav-item"><i class="bi bi-grid-1x2-fill"></i><span class="nav-label">Dashboard</span></a>
+      <a href="monitor.html" class="nav-item active"><i class="bi bi-camera-video-fill"></i><span class="nav-label">Live Monitor</span></a>
+      <a href="alert-triage.html" class="nav-item"><i class="bi bi-exclamation-triangle-fill"></i><span class="nav-label">Alert Triage</span><span class="nav-badge">3</span></a>
+      <div class="sidebar-section-title">Intelligence</div>
+      <a href="analytics.html" class="nav-item"><i class="bi bi-bar-chart-line-fill"></i><span class="nav-label">Analytics</span></a>
+      <a href="#" class="nav-item"><i class="bi bi-cpu-fill"></i><span class="nav-label">AI Models</span></a>
+      <div class="sidebar-section-title">System</div>
+      <a href="#" class="nav-item"><i class="bi bi-gear-fill"></i><span class="nav-label">Settings</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="cloud-widget">
+        <div class="cloud-label"><span>Cloud Budget</span><i class="bi bi-cloud-check" style="color:var(--green);"></i></div>
+        <div class="cloud-bar-track"><div class="cloud-bar-fill"></div></div>
+        <div class="cloud-budget">$42.50 / $100.00</div>
+      </div>
+      <button class="collapse-trigger" id="collapseBtn"><i class="bi bi-chevron-left"></i><span>Collapse</span></button>
+    </div>
+  </aside>
+
+  <!-- ══ NAVBAR ════════════════════════════════════════════════ -->
+  <header class="navbar">
+    <button class="navbar-mobile-btn" id="mobileMenuBtn"><i class="bi bi-list"></i></button>
+    <div class="navbar-search">
+      <i class="bi bi-search"></i>
+      <input type="text" placeholder="Search cameras, alerts, logs…">
+    </div>
+    <div class="navbar-right">
+      <div class="soc-badge"><span class="soc-dot"></span><span>SOC LIVE</span></div>
+      <button class="notif-btn"><i class="bi bi-bell"></i><span class="notif-pip"></span></button>
+      <div class="user-chip">
+        <div><div class="user-chip-name">Command Center</div><div class="user-chip-role">Senior Operator</div></div>
+        <div class="user-avatar">SC</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ MAIN ══════════════════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- Page header -->
+    <div class="page-hdr">
+      <div class="page-hdr-left">
+        <h1>Live Monitor <span class="chip chip-green" id="sysChip" style="font-size:10px;vertical-align:middle;">NOMINAL</span></h1>
+        <p>Real-time AI inference feed — webcam stream via WebSocket.</p>
+      </div>
+      <div class="page-hdr-right">
+        <label class="flex items-center gap-2" style="font-size:12px;color:var(--text-sub);cursor:pointer;">
+          <input type="checkbox" id="annotateToggle" checked style="accent-color:var(--blue);width:13px;height:13px;">
+          Backend Annotations
+        </label>
+        <button class="btn btn-ghost" id="snapshotBtn" disabled><i class="bi bi-camera"></i> Snapshot</button>
+        <button class="btn btn-primary" id="camBtn"><i class="bi bi-camera-video" id="camIcon"></i><span id="camLabel">Start Camera</span></button>
+      </div>
+    </div>
+
+    <!-- Connection status bar -->
+    <div class="conn-bar mb-4 fade-up">
+      <div class="conn-indicator">
+        <span class="conn-dot off" id="wsDot"></span>
+        <span id="wsLabel" style="color:var(--text-muted);">Disconnected</span>
+      </div>
+      <span class="conn-sep">|</span>
+      <div class="conn-indicator">
+        <span class="conn-dot off" id="modelDot"></span>
+        <span id="modelLabel" style="color:var(--text-muted);">Models Not Loaded</span>
+      </div>
+      <span class="conn-sep">|</span>
+      <span class="text-mono text-muted text-xs" id="lastInferTs">Last inference: —</span>
+      <span class="text-mono text-xs text-muted" style="margin-left:auto;" id="fpsDisplay">FPS: —</span>
+    </div>
+
+    <!-- Error banner -->
+    <div id="errorBanner" style="display:none;padding:10px 14px;border-radius:var(--radius-sm);border:1px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.07);color:var(--red);font-size:12.5px;margin-bottom:16px;gap:8px;" class="flex items-center">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span id="errorText"></span>
+    </div>
+
+    <!-- Main 2/3 + 1/3 grid (mirrors React component) -->
+    <div class="grid fade-up fade-up-2" style="grid-template-columns:2fr 1fr;gap:20px;align-items:start;">
+
+      <!-- LEFT: feed -->
+      <div style="display:flex;flex-direction:column;gap:14px;">
+
+        <!-- Video feed card -->
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div class="monitor-feed-wrap" id="feedWrap">
+            <video id="monitorVideo" autoplay muted playsinline></video>
+            <img id="annotatedImg" alt="Annotated feed">
+            <canvas id="captureCanvas" style="display:none;"></canvas>
+
+            <div class="feed-offline" id="offlineMsg">
+              <i class="bi bi-camera-video-off"></i>
+              <span>Camera offline — press Start Camera</span>
+            </div>
+
+            <!-- HUDs -->
+            <div class="feed-hud-tl" id="hudTL">
+              <div class="hud-pill"><span class="rec-dot"></span>LIVE · CAM-WEB</div>
+            </div>
+            <div class="feed-hud-tr" id="hudTR">
+              <div class="hud-pill" id="fpsPill">FPS: —</div>
+            </div>
+            <div class="feed-hud-bl" id="hudBL">
+              <div class="alert-overlay-badge clear" id="alertBadge">
+                <i class="bi bi-check-circle-fill" id="alertIcon"></i>
+                <span id="alertText">All Clear</span>
+              </div>
+            </div>
+            <div class="feed-hud-br" id="hudBR">
+              <div class="hud-pill" id="latPill">LATENCY: —</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Camera controls row -->
+        <div class="card" style="padding:12px 16px;">
+          <div class="flex items-center gap-4 flex-wrap">
+            <div class="flex gap-1 text-xs text-mono">
+              <span class="text-muted">SOURCE:</span>
+              <span id="camSource" style="color:var(--text-sub);">—</span>
+            </div>
+            <div class="flex gap-1 text-xs text-mono">
+              <span class="text-muted">RES:</span>
+              <span id="camRes" style="color:var(--text-sub);">—</span>
+            </div>
+            <div class="flex gap-1 text-xs text-mono">
+              <span class="text-muted">INTERVAL:</span>
+              <span style="color:var(--text-sub);">100ms · 10fps</span>
+            </div>
+            <button class="btn btn-ghost" style="margin-left:auto;padding:5px 10px;font-size:12px;" id="fullscreenBtn">
+              <i class="bi bi-fullscreen"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Alert history -->
+        <div class="card">
+          <div class="card-hdr">
+            <span class="card-title"><i class="bi bi-clock-history"></i>Detection Log</span>
+            <span class="chip chip-blue" id="alertCountChip">0 events</span>
+          </div>
+          <div style="max-height:200px;overflow-y:auto;padding:12px 16px;">
+            <div id="alertFeedList">
+              <div style="text-align:center;color:var(--text-muted);font-size:11.5px;padding:20px 0;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.5px;">
+                No detections yet
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: detection stat cards (mirrors React sidebar) -->
+      <div style="display:flex;flex-direction:column;gap:14px;">
+
+        <!-- Violence Detection card -->
+        <div class="det-stat">
+          <div class="det-stat-title"><i class="bi bi-shield-exclamation" style="color:var(--red);font-size:13px;"></i>Violence Detection</div>
+          <div class="det-stat-row">
+            <span class="lbl">Confidence</span>
+            <span class="val green" id="violenceConfVal">0.0%</span>
+          </div>
+          <div class="prog-track">
+            <div class="prog-fill green" id="violenceBar" style="width:0%;"></div>
+          </div>
+          <div class="det-stat-row">
+            <span class="lbl">Threshold</span>
+            <span class="val" style="color:var(--text-muted);">60%</span>
+          </div>
+          <div class="det-status-badge ok" id="violenceStatus">
+            <i class="bi bi-check-circle-fill"></i> No Violence
+          </div>
+        </div>
+
+        <!-- Littering Detection card -->
+        <div class="det-stat">
+          <div class="det-stat-title"><i class="bi bi-trash" style="color:var(--orange);font-size:13px;"></i>Littering Detection</div>
+          <div class="det-stat-row">
+            <span class="lbl">Objects found</span>
+            <span class="val" id="litterCount">0</span>
+          </div>
+          <div id="litterList" style="display:flex;flex-direction:column;gap:0;"></div>
+          <div class="det-status-badge ok" id="litterStatus">
+            <i class="bi bi-check-circle-fill"></i> No Littering
+          </div>
+        </div>
+
+        <!-- Last Inference card -->
+        <div class="det-stat">
+          <div class="det-stat-title"><i class="bi bi-eye" style="font-size:13px;"></i>Last Inference</div>
+          <p class="text-mono text-xs text-muted" id="lastTs">—</p>
+        </div>
+
+        <!-- Session stats card -->
+        <div class="det-stat">
+          <div class="det-stat-title"><i class="bi bi-activity" style="color:var(--cyan);font-size:13px;"></i>Session Stats</div>
+          <div class="det-stat-row"><span class="lbl">Frames sent</span><span class="val" style="color:var(--cyan);" id="statFrames">0</span></div>
+          <div class="prog-track" style="margin-bottom:8px;"><div class="prog-fill cyan" id="frameBar" style="width:0%;"></div></div>
+          <div class="det-stat-row"><span class="lbl">Violence events</span><span class="val" style="color:var(--red);" id="statViolence">0</span></div>
+          <div class="det-stat-row"><span class="lbl">Litter events</span><span class="val" style="color:var(--orange);" id="statLitter">0</span></div>
+          <div class="det-stat-row"><span class="lbl">Critical (both)</span><span class="val" style="color:var(--purple);" id="statCritical">0</span></div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ══ FOOTER ════════════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="footer-left">
+      <span>© 2024 PLITHOS ENTERPRISE</span>
+      <span><span class="uptime-dot"></span>UPTIME: 99.98%</span>
+      <span id="footerLatency">LATENCY: —</span>
+    </div>
+    <div class="footer-right">
+      <span id="footerClock"></span>
+      <span>V.3.0.0-STABLE</span>
+    </div>
+  </footer>
+
+</div>
+
+<script src="js/plithos.js"></script>
+<script>
+(function() {
+  'use strict';
+  const WS_URL         = 'ws://localhost:8000/ws';
+  const STATUS_URL     = 'http://localhost:8000/status';
+  const FRAME_INTERVAL = 100;
+  const RECONNECT_MS   = 3000;
+
+  let ws, stream, captureTimer, reconnectTimer;
+  let isRunning = false, isConnected = false, modelsReady = false;
+  let frameCount = 0, lastFrameTime = 0, fpsCount = 0;
+  const stats = { frames:0, violence:0, litter:0, critical:0 };
+  const alertLog = [];
+
+  // DOM
+  const video        = document.getElementById('monitorVideo');
+  const annotImg     = document.getElementById('annotatedImg');
+  const canvas       = document.getElementById('captureCanvas');
+  const ctx          = canvas.getContext('2d');
+  const offlineMsg   = document.getElementById('offlineMsg');
+  const camBtn       = document.getElementById('camBtn');
+  const camIcon      = document.getElementById('camIcon');
+  const camLabel     = document.getElementById('camLabel');
+  const snapshotBtn  = document.getElementById('snapshotBtn');
+  const annotToggle  = document.getElementById('annotateToggle');
+  const errorBanner  = document.getElementById('errorBanner');
+  const errorText    = document.getElementById('errorText');
+  const wsDot        = document.getElementById('wsDot');
+  const wsLabel      = document.getElementById('wsLabel');
+  const modelDot     = document.getElementById('modelDot');
+  const modelLabel   = document.getElementById('modelLabel');
+  const lastInferTs  = document.getElementById('lastInferTs');
+  const fpsDisplay   = document.getElementById('fpsDisplay');
+  const fpsPill      = document.getElementById('fpsPill');
+  const latPill      = document.getElementById('latPill');
+  const footerLatency= document.getElementById('footerLatency');
+  const sysChip      = document.getElementById('sysChip');
+  const alertBadge   = document.getElementById('alertBadge');
+  const alertIcon    = document.getElementById('alertIcon');
+  const alertText    = document.getElementById('alertText');
+  const violenceConfVal = document.getElementById('violenceConfVal');
+  const violenceBar     = document.getElementById('violenceBar');
+  const violenceStatus  = document.getElementById('violenceStatus');
+  const litterCount     = document.getElementById('litterCount');
+  const litterList      = document.getElementById('litterList');
+  const litterStatus    = document.getElementById('litterStatus');
+  const lastTs          = document.getElementById('lastTs');
+  const statFrames      = document.getElementById('statFrames');
+  const statViolence    = document.getElementById('statViolence');
+  const statLitter      = document.getElementById('statLitter');
+  const statCritical    = document.getElementById('statCritical');
+  const frameBar        = document.getElementById('frameBar');
+  const alertFeedList   = document.getElementById('alertFeedList');
+  const alertCountChip  = document.getElementById('alertCountChip');
+  const camSource       = document.getElementById('camSource');
+  const camRes          = document.getElementById('camRes');
+
+  function huds(show) {
+    ['hudTL','hudTR','hudBL','hudBR'].forEach(id => {
+      document.getElementById(id).style.display = show ? 'block' : 'none';
+    });
+  }
+
+  // ── WebSocket ─────────────────────────────────────────────
+  function connect() {
+    if (ws && ws.readyState === WebSocket.OPEN) return;
+    setWs('loading','Connecting…');
+    ws = new WebSocket(WS_URL);
+    ws.onopen = () => { isConnected=true; setWs('on','Connected'); setError(null); pollStatus(); };
+    ws.onmessage = e => {
+      let d; try { d=JSON.parse(e.data); } catch { return; }
+      if (d.error) { setError(d.error); return; }
+      modelsReady = true;
+      setModel('on','Models Ready');
+      handleResult(d);
+    };
+    ws.onerror = () => setError('WebSocket error — is the Python server running?');
+    ws.onclose = () => { isConnected=false; setWs('off','Disconnected'); clearTimeout(reconnectTimer); reconnectTimer=setTimeout(connect,RECONNECT_MS); };
+  }
+
+  function sendFrame(b64) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ frame: b64, annotate: annotToggle.checked }));
+  }
+
+  function pollStatus() {
+    if (modelsReady) return;
+    fetch(STATUS_URL).then(r=>r.json()).then(d => {
+      if (d.models_ready) { modelsReady=true; setModel('on','Models Ready'); }
+      else setTimeout(pollStatus,2000);
+    }).catch(()=>setTimeout(pollStatus,3000));
+  }
+
+  // ── Camera ────────────────────────────────────────────────
+  camBtn.addEventListener('click', ()=> isRunning ? stopCamera() : startCamera());
+
+  async function startCamera() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video:true });
+      video.srcObject = stream;
+      await video.play();
+      const t = stream.getVideoTracks()[0];
+      const s = t.getSettings();
+      camSource.textContent = t.label || 'Webcam';
+      camRes.textContent = (s.width||'?') + '×' + (s.height||'?');
+      isRunning=true;
+      offlineMsg.style.display='none';
+      huds(true);
+      camBtn.className='btn btn-danger';
+      camIcon.className='bi bi-stop-circle';
+      camLabel.textContent='Stop Camera';
+      snapshotBtn.disabled=false;
+      captureTimer = setInterval(captureAndSend, FRAME_INTERVAL);
+    } catch(e) { setError('Camera error: ' + e.message); }
+  }
+
+  function stopCamera() {
+    clearInterval(captureTimer);
+    if (stream) { stream.getTracks().forEach(t=>t.stop()); stream=null; }
+    video.srcObject=null; isRunning=false;
+    offlineMsg.style.display='flex';
+    huds(false);
+    annotImg.style.display='none'; video.style.display='block';
+    camBtn.className='btn btn-primary';
+    camIcon.className='bi bi-camera-video';
+    camLabel.textContent='Start Camera';
+    snapshotBtn.disabled=true;
+    camSource.textContent='—'; camRes.textContent='—';
+  }
+
+  function captureAndSend() {
+    if (!isRunning || video.readyState < 2) return;
+    canvas.width=video.videoWidth||640; canvas.height=video.videoHeight||480;
+    ctx.drawImage(video,0,0);
+    lastFrameTime = performance.now();
+    sendFrame(canvas.toDataURL('image/jpeg',0.7));
+    stats.frames++; fpsCount++;
+    statFrames.textContent = stats.frames.toLocaleString();
+    frameBar.style.width = Math.min((stats.frames/500)*100,100)+'%';
+  }
+
+  setInterval(()=>{ if(isRunning){ fpsPill.textContent='FPS: '+fpsCount; fpsDisplay.textContent='FPS: '+fpsCount; } fpsCount=0; },1000);
+
+  // ── Result handler ────────────────────────────────────────
+  function handleResult(d) {
+    const latency = Math.round(performance.now() - lastFrameTime);
+    const tsStr = d.timestamp ? new Date(d.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+
+    lastInferTs.textContent = 'Last inference: ' + tsStr;
+    latPill.textContent = 'LATENCY: ' + latency + 'ms';
+    footerLatency.textContent = 'LATENCY: ' + latency + 'ms';
+    lastTs.textContent = tsStr;
+
+    // Annotated frame
+    if (d.annotated_frame && annotToggle.checked) {
+      annotImg.src = d.annotated_frame;
+      annotImg.style.display='block'; video.style.display='none';
+    } else {
+      annotImg.style.display='none'; video.style.display='block';
+    }
+
+    // Alert level
+    const level = d.is_violent && d.is_littering ? 'critical'
+                : d.is_violent ? 'violent'
+                : d.is_littering ? 'litter'
+                : 'clear';
+
+    const labels = { clear:'All Clear', violent:'Violence Detected', litter:'Littering Detected', critical:'CRITICAL — Fight + Litter' };
+    const icons  = { clear:'bi-check-circle-fill', violent:'bi-exclamation-triangle-fill', litter:'bi-trash-fill', critical:'bi-exclamation-octagon-fill' };
+
+    if (isRunning) {
+      alertBadge.className = 'alert-overlay-badge ' + level;
+      alertIcon.className = 'bi ' + icons[level];
+      alertText.textContent = labels[level];
+    }
+
+    // System chip
+    if (level==='critical') { sysChip.className='chip chip-red'; sysChip.textContent='CRITICAL'; }
+    else if (level!=='clear') { sysChip.className='chip chip-orange'; sysChip.textContent='ALERT'; }
+    else { sysChip.className='chip chip-green'; sysChip.textContent='NOMINAL'; }
+
+    // Violence card
+    const vPct = Math.round((d.violence_confidence||0)*100);
+    violenceConfVal.textContent = vPct + '%';
+    violenceConfVal.className = 'val ' + (d.is_violent ? 'red' : 'green');
+    violenceBar.style.width = vPct + '%';
+    violenceBar.className = 'prog-fill ' + (d.is_violent ? 'red' : 'green');
+    violenceStatus.className = 'det-status-badge ' + (d.is_violent ? 'bad' : 'ok');
+    violenceStatus.innerHTML = d.is_violent
+      ? '<i class="bi bi-exclamation-triangle-fill"></i> Violence Detected'
+      : '<i class="bi bi-check-circle-fill"></i> No Violence';
+
+    // Litter card
+    const dets = d.litter_detections || [];
+    litterCount.textContent = dets.length;
+    litterList.innerHTML = dets.length
+      ? dets.map(x=>`<div class="litter-row"><span>${esc(x.label)}</span><span style="font-family:var(--font-mono);font-weight:600;">${Math.round(x.confidence*100)}%</span></div>`).join('')
+      : '';
+    litterStatus.className = 'det-status-badge ' + (d.is_littering ? 'warn' : 'ok');
+    litterStatus.innerHTML = d.is_littering
+      ? '<i class="bi bi-exclamation-triangle-fill"></i> Littering Detected'
+      : '<i class="bi bi-check-circle-fill"></i> No Littering';
+
+    // Stats
+    if (d.is_violent && d.is_littering) { stats.critical++; statCritical.textContent=stats.critical; }
+    if (d.is_violent) { stats.violence++; statViolence.textContent=stats.violence; }
+    if (d.is_littering) { stats.litter++; statLitter.textContent=stats.litter; }
+
+    // Alert log
+    if (d.is_violent || d.is_littering) addToLog(d, tsStr, level);
+  }
+
+  function addToLog(d, tsStr, level) {
+    const colorMap = { critical:'var(--purple)', violent:'var(--red)', litter:'var(--orange)' };
+    const txtMap = {
+      critical: 'Violence + Littering — CRITICAL (' + Math.round(d.violence_confidence*100) + '% conf)',
+      violent:  'Violence detected — ' + Math.round(d.violence_confidence*100) + '% confidence',
+      litter:   'Littering detected — ' + (d.litter_detections.length) + ' object(s)'
+    };
+
+    // Remove empty state
+    const empty = alertFeedList.querySelector('div[style*="text-align:center"]');
+    if (empty) empty.remove();
+
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:11.5px;';
+    row.innerHTML = `
+      <span style="width:7px;height:7px;border-radius:50%;background:${colorMap[level]};flex-shrink:0;margin-top:4px;"></span>
+      <span style="color:var(--text-sub);flex:1;">${esc(txtMap[level])}</span>
+      <span style="color:var(--text-muted);font-family:var(--font-mono);font-size:10.5px;white-space:nowrap;">${tsStr}</span>
+    `;
+    alertFeedList.insertBefore(row, alertFeedList.firstChild);
+    alertLog.unshift({ level, tsStr });
+    if (alertFeedList.children.length > 50) alertFeedList.removeChild(alertFeedList.lastChild);
+    alertCountChip.textContent = alertLog.length + ' event' + (alertLog.length!==1?'s':'');
+  }
+
+  // ── Snapshot ──────────────────────────────────────────────
+  snapshotBtn.addEventListener('click', ()=>{
+    if (!isRunning) return;
+    canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+    ctx.drawImage(video,0,0);
+    const a=document.createElement('a'); a.download='plithos-'+Date.now()+'.jpg'; a.href=canvas.toDataURL('image/jpeg',0.92); a.click();
+  });
+
+  document.getElementById('fullscreenBtn').addEventListener('click', ()=>{
+    const w = document.getElementById('feedWrap');
+    document.fullscreenElement ? document.exitFullscreen() : w.requestFullscreen().catch(()=>{});
+  });
+
+  annotToggle.addEventListener('change', ()=>{
+    if (!annotToggle.checked) { annotImg.style.display='none'; video.style.display='block'; }
+  });
+
+  // ── UI helpers ────────────────────────────────────────────
+  function setWs(state, label) {
+    wsDot.className = 'conn-dot ' + state;
+    wsLabel.textContent = label;
+    wsLabel.style.color = state==='on' ? 'var(--green)' : state==='loading' ? 'var(--orange)' : 'var(--text-muted)';
+  }
+  function setModel(state, label) {
+    modelDot.className = 'conn-dot ' + state;
+    modelLabel.textContent = label;
+    modelLabel.style.color = state==='on' ? 'var(--green)' : state==='loading' ? 'var(--orange)' : 'var(--text-muted)';
+  }
+  function setError(msg) {
+    if (msg) { errorBanner.style.display='flex'; errorText.textContent=msg; }
+    else { errorBanner.style.display='none'; }
+  }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  connect();
+})();
+</script>
+</body>
+</html>

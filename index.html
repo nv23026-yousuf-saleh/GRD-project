@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sentinel Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#08111b; --panel:#101b28ee; --panel-soft:#122235cc; --border:#7699bc26; --strong:#7699bc52;
+      --text:#ebf4ff; --muted:#96abc2; --dim:#637b94; --accent:#34b4ff; --accent-soft:#34b4ff1f;
+      --safe:#14d47f; --safe-soft:#14d47f1f; --danger:#ff4c63; --danger-soft:#ff4c6322; --warn:#ffb02d; --warn-soft:#ffb02d24; --fire:#ff7b2f; --fire-soft:#ff7b2f24;
+      --radius:18px; --font-display:"Rajdhani",sans-serif; --font-body:"Work Sans",sans-serif; --font-mono:"JetBrains Mono",monospace;
+    }
+    body[data-theme="light"] {
+      --bg:#eef4fb; --panel:#ffffffea; --panel-soft:#eef4fbef; --border:#4966831f; --strong:#49668342;
+      --text:#132435; --muted:#586d84; --dim:#8398ad; --accent-soft:#34b4ff18; --safe-soft:#14d47f18; --danger-soft:#ff4c6316; --warn-soft:#ffb02d18; --fire-soft:#ff7b2f18;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      min-height:100vh; font-family:var(--font-body); color:var(--text);
+      background:radial-gradient(circle at top left,#34b4ff21,transparent 25%), radial-gradient(circle at top right,#14d47f12,transparent 20%), var(--bg);
+    }
+    button { font:inherit; border:0; background:none; color:inherit; cursor:pointer; }
+    .page { width:min(1400px,calc(100% - 24px)); margin:0 auto; padding:18px 0 28px; }
+    .topbar,.panel,.banner { border:1px solid var(--border); background:var(--panel); border-radius:22px; box-shadow:0 18px 56px #00000022; }
+    .topbar { display:flex; justify-content:space-between; gap:16px; padding:18px 20px; position:sticky; top:12px; z-index:10; backdrop-filter:blur(16px); }
+    .brand { display:flex; gap:14px; min-width:0; }
+    .mark { width:52px; height:52px; border-radius:16px; display:grid; place-items:center; font:700 24px var(--font-display); color:var(--accent); background:linear-gradient(145deg,#34b4ff26,transparent), #09111b; border:1px solid #34b4ff33; }
+    .kicker,.mini,.label { font:500 11px var(--font-mono); letter-spacing:.18em; text-transform:uppercase; color:var(--dim); }
+    h1 { font:700 clamp(28px,3vw,38px)/1 var(--font-display); letter-spacing:.08em; text-transform:uppercase; }
+    .sub { margin-top:6px; color:var(--muted); font-size:14px; max-width:700px; }
+    .top-right { display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+    .pill,.theme-btn,.clock { min-height:42px; padding:0 14px; border-radius:999px; display:inline-flex; align-items:center; gap:10px; background:var(--panel-soft); border:1px solid var(--border); }
+    .dot { width:10px; height:10px; border-radius:999px; background:var(--dim); box-shadow:0 0 0 5px #768da31c; }
+    .pill.live .dot { background:var(--safe); box-shadow:0 0 0 5px #14d47f22; }
+    .pill.error .dot { background:var(--danger); box-shadow:0 0 0 5px #ff4c6322; }
+    .dashboard { display:grid; grid-template-columns:minmax(0,1.55fr) 360px; gap:18px; margin-top:18px; align-items:start; }
+    .main,.side { display:grid; gap:18px; }
+    .banner { display:flex; justify-content:space-between; gap:16px; padding:18px 20px; background:linear-gradient(135deg,var(--safe-soft),transparent 55%), var(--panel); }
+    .banner.danger { background:linear-gradient(135deg,var(--danger-soft),transparent 55%), var(--panel); border-color:#ff4c6340; }
+    .banner.warn { background:linear-gradient(135deg,var(--warn-soft),transparent 55%), var(--panel); border-color:#ffb02d3d; }
+    .banner.fire { background:linear-gradient(135deg,var(--fire-soft),transparent 55%), var(--panel); border-color:#ff7b2f40; }
+    .banner h2,.title { font:700 clamp(24px,2.5vw,34px)/1 var(--font-display); letter-spacing:.07em; text-transform:uppercase; }
+    .banner p,.card-copy,.feed-note,.stat-copy,.empty,.alert-detail { color:var(--muted); font-size:14px; }
+    .banner-meta { display:grid; gap:8px; min-width:190px; }
+    .chip { min-height:34px; padding:0 12px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; background:var(--panel-soft); border:1px solid var(--border); font:500 11px var(--font-mono); letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+    .panel { padding:18px; }
+    .feed-head,.section-head,.toolbar { display:flex; justify-content:space-between; gap:14px; align-items:flex-start; }
+    .feed-badges,.filters { display:flex; gap:8px; flex-wrap:wrap; }
+    .feed-stage { position:relative; margin-top:14px; aspect-ratio:16/9; overflow:hidden; border-radius:16px; border:1px solid var(--border); background:#05080d; }
+    .feed-stage img { width:100%; height:100%; object-fit:cover; display:block; }
+    .overlay { position:absolute; z-index:2; min-height:34px; padding:0 12px; border-radius:999px; display:inline-flex; align-items:center; background:#05101bcc; border:1px solid #ffffff1a; color:#f4f9ff; font:500 11px var(--font-mono); letter-spacing:.12em; text-transform:uppercase; backdrop-filter:blur(12px); }
+    body[data-theme="light"] .overlay { background:#ffffffe0; color:#132435; border-color:#1324351a; }
+    .time { top:12px; left:12px; } .mode { top:12px; right:12px; }
+    .offline { position:absolute; inset:0; display:none; align-items:center; justify-content:center; z-index:3; background:#02060ab3; }
+    .offline-box { padding:18px 22px; border-radius:18px; background:#09111bd6; border:1px solid #ffffff1a; text-align:center; }
+    .offline-box strong { display:block; font:700 22px/1 var(--font-display); letter-spacing:.07em; text-transform:uppercase; }
+    .feed-row,.stats,.session-grid { display:grid; gap:10px; margin-top:14px; }
+    .feed-row { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .card,.stat,.session { padding:14px; border-radius:16px; border:1px solid var(--border); background:var(--panel-soft); }
+    .card-value,.stat-value,.session-value { margin-top:10px; font:700 28px/1 var(--font-display); letter-spacing:.04em; text-transform:uppercase; }
+    .stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .stat { position:relative; min-height:132px; }
+    .stat::before { content:""; position:absolute; inset:0 auto 0 0; width:4px; border-radius:4px; background:var(--accent); opacity:.85; }
+    .stat[data-tone="violence"]::before { background:var(--danger); } .stat[data-tone="litter"]::before { background:var(--warn); } .stat[data-tone="fire"]::before { background:var(--fire); } .stat[data-tone="persons"]::before { background:var(--accent); }
+    .stat.alert[data-tone="violence"] { background:linear-gradient(180deg,var(--danger-soft),transparent 60%), var(--panel-soft); }
+    .stat.alert[data-tone="litter"] { background:linear-gradient(180deg,var(--warn-soft),transparent 60%), var(--panel-soft); }
+    .stat.alert[data-tone="fire"] { background:linear-gradient(180deg,var(--fire-soft),transparent 60%), var(--panel-soft); }
+    .section-head { margin-bottom:14px; }
+    .session-grid { grid-template-columns:repeat(2,minmax(0,1fr)); margin-top:0; }
+    .toolbar { margin-top:14px; align-items:center; flex-wrap:wrap; }
+    .filter,.export { min-height:34px; padding:0 12px; border-radius:999px; background:var(--panel-soft); border:1px solid var(--border); color:var(--muted); font:600 14px var(--font-display); letter-spacing:.08em; text-transform:uppercase; }
+    .filter.active { color:var(--accent); border-color:#34b4ff4d; background:var(--accent-soft); }
+    .alerts { display:grid; gap:10px; margin-top:14px; }
+    .alert { display:grid; grid-template-columns:12px minmax(0,1fr) auto; gap:14px; align-items:center; padding:14px 16px; border-radius:16px; border:1px solid var(--border); background:var(--panel-soft); }
+    .bar { min-height:54px; border-radius:999px; background:var(--accent); } .alert[data-type="violence"] .bar{background:var(--danger);} .alert[data-type="littering"] .bar{background:var(--warn);} .alert[data-type="fire"] .bar{background:var(--fire);}
+    .alert-top { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .type { font:700 18px/1 var(--font-display); letter-spacing:.08em; text-transform:uppercase; }
+    .sev,.alert-time { font:500 11px var(--font-mono); letter-spacing:.12em; text-transform:uppercase; color:var(--dim); }
+    .sev { min-height:22px; padding:0 8px; border-radius:999px; border:1px solid var(--border); display:inline-flex; align-items:center; }
+    .empty { padding:24px 18px; text-align:center; border-radius:16px; border:1px dashed var(--border); background:var(--panel-soft); }
+    @media (max-width:1160px){ .dashboard{grid-template-columns:1fr;} .side{grid-template-columns:repeat(2,minmax(0,1fr));} .session-wrap{grid-column:1/-1;} }
+    @media (max-width:860px){ .page{width:min(100% - 16px,1400px); padding-top:10px;} .topbar,.banner,.panel{padding:16px;} .topbar,.banner,.feed-head,.section-head,.toolbar{flex-direction:column; align-items:flex-start;} .topbar{position:static;} .feed-row,.stats,.session-grid,.side{grid-template-columns:1fr;} .alert{grid-template-columns:10px 1fr;} .alert-time{text-align:left;} }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">S</div>
+        <div>
+          <div class="kicker">Live safety monitoring</div>
+          <h1>Sentinel control room</h1>
+          <p class="sub">The camera stays clean. Alerts, counts, uptime, and logs are rendered in the site from the backend state instead of being painted into the video.</p>
+        </div>
+      </div>
+      <div class="top-right">
+        <div class="pill" id="conn"><span class="dot"></span><span><strong id="connLabel">Connecting</strong><br><span class="mini" id="connMeta">Waiting for backend</span></span></div>
+        <div class="clock" id="clock">--:--:--</div>
+        <button class="theme-btn" id="themeBtn" type="button">Light mode</button>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section class="main">
+        <section class="banner" id="banner">
+          <div>
+            <div class="kicker" id="bannerKick">System status</div>
+            <h2 id="bannerTitle">Monitoring live</h2>
+            <p id="bannerCopy">No active alerts. The website is reading the real backend state from <code>/api/state</code>.</p>
+          </div>
+          <div class="banner-meta">
+            <div class="chip" id="sourceChip">Source: --</div>
+            <div class="chip" id="updateChip">Updated: --</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="feed-head">
+            <div>
+              <div class="title" id="feedTitle">Live camera</div>
+              <p class="feed-note">Warnings stay in the dashboard UI so the feed itself is easier to watch.</p>
+            </div>
+            <div class="feed-badges">
+              <div class="chip" id="modelsChip">Models loading</div>
+              <div class="chip" id="fpsChip">FPS --</div>
+              <div class="chip" id="personsChip">Persons 0</div>
+            </div>
+          </div>
+
+          <div class="feed-stage">
+            <img id="feed" alt="Live camera feed" src="" />
+            <div class="overlay time" id="feedTime">--</div>
+            <div class="overlay mode" id="feedMode">Connecting</div>
+            <div class="offline" id="feedOffline">
+              <div class="offline-box">
+                <strong>Feed unavailable</strong>
+                <p class="feed-note" id="offlineCopy">Waiting for the camera stream.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="feed-row">
+            <article class="card"><div class="label">Violence</div><div class="card-value" id="feedViolence">Clear</div><p class="card-copy" id="feedViolenceCopy">No violence detected</p></article>
+            <article class="card"><div class="label">Littering</div><div class="card-value" id="feedLitter">0</div><p class="card-copy" id="feedLitterCopy">No litter detections</p></article>
+            <article class="card"><div class="label">Fire / smoke</div><div class="card-value" id="feedFire">Clear</div><p class="card-copy" id="feedFireCopy">No fire or smoke detected</p></article>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <div class="title">Recent alerts</div>
+              <p class="feed-note">Pulled from backend alert history. No fake browser-side counters.</p>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <div class="filters" id="filters">
+              <button class="filter active" type="button" data-filter="all">All</button>
+              <button class="filter" type="button" data-filter="violence">Violence</button>
+              <button class="filter" type="button" data-filter="littering">Littering</button>
+              <button class="filter" type="button" data-filter="fire">Fire</button>
+            </div>
+            <button class="export" id="exportBtn" type="button">Export CSV</button>
+          </div>
+
+          <div class="alerts" id="alerts">
+            <div class="empty">Waiting for backend events. When a detection is recorded, it will appear here with the real timestamp.</div>
+          </div>
+        </section>
+      </section>
+
+      <aside class="side">
+        <article class="stat" id="violenceStat" data-tone="violence"><div class="label">Violence</div><div class="stat-value" id="violenceValue">Clear</div><p class="stat-copy" id="violenceCopy">No violence detected</p></article>
+        <article class="stat" id="litterStat" data-tone="litter"><div class="label">Littering</div><div class="stat-value" id="litterValue">0</div><p class="stat-copy" id="litterCopy">No litter detections</p></article>
+        <article class="stat" id="fireStat" data-tone="fire"><div class="label">Fire / smoke</div><div class="stat-value" id="fireValue">Clear</div><p class="stat-copy" id="fireCopy">No fire or smoke detected</p></article>
+        <article class="stat" id="personsStat" data-tone="persons"><div class="label">Persons</div><div class="stat-value" id="personsValue">0</div><p class="stat-copy" id="personsCopy">Live count from backend</p></article>
+
+        <section class="panel session-wrap">
+          <div class="section-head">
+            <div>
+              <div class="title">Session stats</div>
+              <p class="feed-note">These values come from the backend, not from browser timers.</p>
+            </div>
+          </div>
+          <div class="session-grid">
+            <article class="session"><div class="label">Frames</div><div class="session-value" id="framesValue">0</div><p class="card-copy">Processed by backend</p></article>
+            <article class="session"><div class="label">Alerts</div><div class="session-value" id="alertsValue">0</div><p class="card-copy">Recorded by backend</p></article>
+            <article class="session"><div class="label">FPS</div><div class="session-value" id="sessionFps">--</div><p class="card-copy">Live throughput</p></article>
+            <article class="session"><div class="label">Uptime</div><div class="session-value" id="uptimeValue">00:00</div><p class="card-copy">Backend runtime</p></article>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const API = `${location.origin}/api/state`;
+    const FEED = `${location.origin}/video_feed`;
+    const POLL_MS = 450;
+    const $ = (id) => document.getElementById(id);
+
+    const DOM = {
+      conn: $("conn"), connLabel: $("connLabel"), connMeta: $("connMeta"), clock: $("clock"), themeBtn: $("themeBtn"),
+      banner: $("banner"), bannerKick: $("bannerKick"), bannerTitle: $("bannerTitle"), bannerCopy: $("bannerCopy"), sourceChip: $("sourceChip"), updateChip: $("updateChip"),
+      feedTitle: $("feedTitle"), feed: $("feed"), feedTime: $("feedTime"), feedMode: $("feedMode"), feedOffline: $("feedOffline"), offlineCopy: $("offlineCopy"),
+      modelsChip: $("modelsChip"), fpsChip: $("fpsChip"), personsChip: $("personsChip"),
+      feedViolence: $("feedViolence"), feedViolenceCopy: $("feedViolenceCopy"), feedLitter: $("feedLitter"), feedLitterCopy: $("feedLitterCopy"), feedFire: $("feedFire"), feedFireCopy: $("feedFireCopy"),
+      violenceStat: $("violenceStat"), violenceValue: $("violenceValue"), violenceCopy: $("violenceCopy"),
+      litterStat: $("litterStat"), litterValue: $("litterValue"), litterCopy: $("litterCopy"),
+      fireStat: $("fireStat"), fireValue: $("fireValue"), fireCopy: $("fireCopy"),
+      personsStat: $("personsStat"), personsValue: $("personsValue"), personsCopy: $("personsCopy"),
+      framesValue: $("framesValue"), alertsValue: $("alertsValue"), sessionFps: $("sessionFps"), uptimeValue: $("uptimeValue"),
+      filters: $("filters"), alerts: $("alerts"), exportBtn: $("exportBtn")
+    };
+
+    const state = { theme: localStorage.getItem("sentinel-theme") || "dark", filter: "all", data: null, pollTimer: null, busy: false, buzzedId: null, audioCtx: null };
+
+    function applyTheme(theme) {
+      state.theme = theme;
+      document.body.dataset.theme = theme;
+      localStorage.setItem("sentinel-theme", theme);
+      DOM.themeBtn.textContent = theme === "light" ? "Dark mode" : "Light mode";
+    }
+
+    function tickClock() { DOM.clock.textContent = new Date().toLocaleTimeString("en-GB", { hour12: false }); }
+    function fmtNum(v) { const n = Number(v); return Number.isFinite(n) ? n.toLocaleString("en-US") : "--"; }
+    function fmtFps(v) { const n = Number(v); return Number.isFinite(n) && n > 0 ? n.toFixed(n >= 10 ? 1 : 2) : "--"; }
+    function fmtTime(v) { if (!v) return "--"; const d = new Date(v); return Number.isNaN(d.getTime()) ? String(v) : d.toLocaleTimeString("en-GB", { hour12: false }); }
+    function fmtUptime(v) { const s = Math.max(0, Number(v) || 0), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60; return h ? `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}` : `${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`; }
+
+    function setConn(mode, label, meta) {
+      DOM.conn.className = "pill";
+      if (mode === "live") DOM.conn.classList.add("live");
+      if (mode === "error") DOM.conn.classList.add("error");
+      DOM.connLabel.textContent = label;
+      DOM.connMeta.textContent = meta;
+    }
+
+    function setStat(card, valueEl, copyEl, active, value, copy) {
+      card.classList.toggle("alert", !!active);
+      valueEl.textContent = value;
+      copyEl.textContent = copy;
+    }
+
+    function renderBanner(data, litterCount, fireActive, violencePct) {
+      DOM.banner.className = "banner";
+      DOM.sourceChip.textContent = `Source: ${data.source_label || "--"}`;
+      DOM.updateChip.textContent = `Updated: ${fmtTime(data.updated_at)}`;
+      if (data.is_violent) {
+        DOM.banner.classList.add("danger");
+        DOM.bannerKick.textContent = "Critical warning";
+        DOM.bannerTitle.textContent = "Violence detected";
+        DOM.bannerCopy.textContent = `Violence is active at ${violencePct}% confidence. The warning and buzzer are handled in the site while the camera feed stays clear.`;
+      } else if (fireActive) {
+        DOM.banner.classList.add("fire");
+        DOM.bannerKick.textContent = "Critical warning";
+        DOM.bannerTitle.textContent = data.is_fire && data.is_smoke ? "Fire and smoke detected" : data.is_fire ? "Fire detected" : "Smoke detected";
+        DOM.bannerCopy.textContent = "A high-severity fire or smoke event is active. The backend alert is being surfaced in the dashboard UI.";
+      } else if (litterCount > 0) {
+        DOM.banner.classList.add("warn");
+        DOM.bannerKick.textContent = "Attention";
+        DOM.bannerTitle.textContent = "Littering detected";
+        DOM.bannerCopy.textContent = `${litterCount} litter detection${litterCount !== 1 ? "s are" : " is"} active in the backend state.`;
+      } else {
+        DOM.bannerKick.textContent = "System status";
+        DOM.bannerTitle.textContent = "Monitoring live";
+        DOM.bannerCopy.textContent = "No active alerts. The website is reading the real backend state from /api/state.";
+      }
+    }
+
+    function renderFeed(data, litterCount, fireActive, fireLabel, violencePct) {
+      DOM.feedTitle.textContent = data.source_label ? `${data.source_label} live feed` : "Live camera";
+      DOM.modelsChip.textContent = data.models_ready ? "Models ready" : "Models loading";
+      DOM.fpsChip.textContent = `FPS ${fmtFps(data.fps)}`;
+      DOM.personsChip.textContent = `Persons ${fmtNum(data.person_count)}`;
+      DOM.feedTime.textContent = data.video_timestamp || "--";
+      DOM.feedMode.textContent = !data.camera_online ? "Camera offline" : !data.models_ready ? "Loading models" : "Live";
+      DOM.feedOffline.style.display = data.camera_online ? "none" : "flex";
+      DOM.offlineCopy.textContent = data.camera_online ? "" : "The backend is running but the camera feed is not available right now.";
+
+      DOM.feedViolence.textContent = data.is_violent ? "Alert" : "Clear";
+      DOM.feedViolenceCopy.textContent = data.is_violent ? `${violencePct}% confidence` : "No violence detected";
+      DOM.feedLitter.textContent = String(litterCount);
+      DOM.feedLitterCopy.textContent = litterCount ? `${litterCount} live detection${litterCount !== 1 ? "s" : ""}` : "No litter detections";
+      DOM.feedFire.textContent = fireLabel;
+      DOM.feedFireCopy.textContent = fireActive ? "High-severity event active" : "No fire or smoke detected";
+    }
+
+    function renderStats(data, litterCount, fireActive, fireLabel, violencePct) {
+      setStat(DOM.violenceStat, DOM.violenceValue, DOM.violenceCopy, data.is_violent, data.is_violent ? "Alert" : "Clear", data.is_violent ? `${violencePct}% confidence from backend` : "No violence detected");
+      setStat(DOM.litterStat, DOM.litterValue, DOM.litterCopy, litterCount > 0, String(litterCount), litterCount ? "Active litter detections from backend" : "No litter detections");
+      setStat(DOM.fireStat, DOM.fireValue, DOM.fireCopy, fireActive, fireLabel, fireActive ? "High-severity fire or smoke event" : "No fire or smoke detected");
+      setStat(DOM.personsStat, DOM.personsValue, DOM.personsCopy, Number(data.person_count) > 0, String(Number(data.person_count) || 0), "Live count from backend");
+      DOM.framesValue.textContent = fmtNum(data.frame);
+      DOM.alertsValue.textContent = fmtNum(data.alerts_total);
+      DOM.sessionFps.textContent = fmtFps(data.fps);
+      DOM.uptimeValue.textContent = fmtUptime(data.uptime_sec);
+    }
+
+    function filteredAlerts() {
+      const alerts = Array.isArray(state.data?.recent_alerts) ? state.data.recent_alerts : [];
+      return state.filter === "all" ? alerts : alerts.filter((a) => a.type === state.filter);
+    }
+
+    function renderAlerts() {
+      const alerts = filteredAlerts();
+      if (!alerts.length) {
+        DOM.alerts.innerHTML = `<div class="empty">No alerts match the current filter. When the backend records a new event, it will appear here automatically.</div>`;
+        return;
+      }
+      DOM.alerts.innerHTML = alerts.map((a) => `
+        <article class="alert" data-type="${a.type}">
+          <div class="bar"></div>
+          <div>
+            <div class="alert-top"><div class="type">${a.type}</div><div class="sev">${a.severity || "MEDIUM"}</div></div>
+            <div class="alert-detail">${a.detail} | ${a.source_label || a.source || "Unknown source"}</div>
+          </div>
+          <div class="alert-time">${fmtTime(a.time)}</div>
+        </article>
+      `).join("");
+    }
+
+    function ensureAudio() {
+      if (!window.AudioContext && !window.webkitAudioContext) return null;
+      if (!state.audioCtx) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        state.audioCtx = new Ctx();
+      }
+      if (state.audioCtx.state === "suspended") state.audioCtx.resume().catch(() => {});
+      return state.audioCtx;
+    }
+
+    function buzz(type) {
+      const ctx = ensureAudio();
+      if (!ctx) return;
+      const start = ctx.currentTime;
+      const tones = type === "violence" ? [650, 420, 650] : [540, 360];
+      tones.forEach((f, i) => {
+        const t = start + i * 0.16;
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(f, t);
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.11, t + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+        osc.connect(gain); gain.connect(ctx.destination); osc.start(t); osc.stop(t + 0.125);
+      });
+    }
+
+    function maybeBuzz(data) {
+      const latest = Array.isArray(data.recent_alerts) ? data.recent_alerts[0] : null;
+      if (!latest || latest.id === state.buzzedId) return;
+      state.buzzedId = latest.id;
+      if (latest.type === "violence" || latest.type === "fire") buzz(latest.type);
+    }
+
+    function applyData(data) {
+      state.data = data;
+      const litterCount = Array.isArray(data.litter_dets) ? data.litter_dets.length : 0;
+      const fireActive = !!(data.is_fire || data.is_smoke);
+      const fireLabel = data.is_fire && data.is_smoke ? "Fire+smoke" : data.is_fire ? "Fire" : data.is_smoke ? "Smoke" : "Clear";
+      const violencePct = Math.round((Number(data.v_conf) || 0) * 100);
+      renderBanner(data, litterCount, fireActive, violencePct);
+      renderFeed(data, litterCount, fireActive, fireLabel, violencePct);
+      renderStats(data, litterCount, fireActive, fireLabel, violencePct);
+      renderAlerts();
+      maybeBuzz(data);
+      setConn(data.camera_online ? "live" : "error", data.camera_online ? "Backend live" : "Camera offline", data.updated_at ? `Updated ${fmtTime(data.updated_at)}` : "Waiting for data");
+    }
+
+    async function poll() {
+      if (state.busy) return;
+      state.busy = true;
+      try {
+        const res = await fetch(API, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        applyData(await res.json());
+      } catch (err) {
+        setConn("error", "No signal", "State request failed");
+        DOM.feedMode.textContent = "No signal";
+        DOM.feedOffline.style.display = "flex";
+        DOM.offlineCopy.textContent = "The dashboard could not reach /api/state. Keep server.py running and refresh if needed.";
+      } finally {
+        state.busy = false;
+        clearTimeout(state.pollTimer);
+        state.pollTimer = setTimeout(poll, POLL_MS);
+      }
+    }
+
+    function exportCsv() {
+      const alerts = filteredAlerts();
+      if (!alerts.length) return;
+      const header = "Time,Type,Severity,Source,Detail\n";
+      const rows = alerts.map((a) => [fmtTime(a.time), a.type, a.severity || "", a.source_label || a.source || "", `"${String(a.detail || "").replace(/"/g,'""')}"`].join(",")).join("\n");
+      const blob = new Blob([header + rows], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url; link.download = `sentinel-alerts-${Date.now()}.csv`; link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    applyTheme(state.theme);
+    tickClock();
+    setInterval(tickClock, 1000);
+    setConn("idle", "Connecting", "Waiting for backend");
+    DOM.feed.src = `${FEED}?t=${Date.now()}`;
+    DOM.feed.addEventListener("error", () => {
+      DOM.feedOffline.style.display = "flex";
+      DOM.offlineCopy.textContent = "The browser could not open the MJPEG stream from /video_feed.";
+    });
+    poll();
+
+    DOM.themeBtn.addEventListener("click", () => applyTheme(state.theme === "light" ? "dark" : "light"));
+    document.addEventListener("pointerdown", ensureAudio, { once: true });
+    DOM.filters.addEventListener("click", (event) => {
+      const btn = event.target.closest("[data-filter]");
+      if (!btn) return;
+      state.filter = btn.dataset.filter;
+      DOM.filters.querySelectorAll("[data-filter]").forEach((el) => el.classList.toggle("active", el === btn));
+      renderAlerts();
+    });
+    DOM.exportBtn.addEventListener("click", exportCsv);
+  </script>
+</body>
+</html>

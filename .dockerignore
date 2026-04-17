@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.git/
+.gitignore
+.venv/
+venv/
+env/
+data/
+plithos.db
+plithos.db-journal
+detections.log
+output_*.mp4
+output_both_*.mp4

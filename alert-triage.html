@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plithos — Alert Triage</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="css/plithos.css" rel="stylesheet">
+</head>
+<body>
+<div class="overlay-bg" id="overlayBg"></div>
+
+<div class="shell" id="shell">
+
+  <!-- ══ SIDEBAR ═══════════════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="bi bi-shield-check"></i></div>
+      <span class="sidebar-logo-text">Plithos</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-title">Operations</div>
+      <a href="index.html" class="nav-item"><i class="bi bi-grid-1x2-fill"></i><span class="nav-label">Dashboard</span></a>
+      <a href="monitor.html" class="nav-item"><i class="bi bi-camera-video-fill"></i><span class="nav-label">Live Monitor</span></a>
+      <a href="alert-triage.html" class="nav-item active"><i class="bi bi-exclamation-triangle-fill"></i><span class="nav-label">Alert Triage</span><span class="nav-badge">3</span></a>
+      <div class="sidebar-section-title">Intelligence</div>
+      <a href="analytics.html" class="nav-item"><i class="bi bi-bar-chart-line-fill"></i><span class="nav-label">Analytics</span></a>
+      <a href="#" class="nav-item"><i class="bi bi-cpu-fill"></i><span class="nav-label">AI Models</span></a>
+      <div class="sidebar-section-title">System</div>
+      <a href="#" class="nav-item"><i class="bi bi-gear-fill"></i><span class="nav-label">Settings</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="cloud-widget">
+        <div class="cloud-label"><span>Cloud Budget</span><i class="bi bi-cloud-check" style="color:var(--green);"></i></div>
+        <div class="cloud-bar-track"><div class="cloud-bar-fill"></div></div>
+        <div class="cloud-budget">$42.50 / $100.00</div>
+      </div>
+      <button class="collapse-trigger" id="collapseBtn"><i class="bi bi-chevron-left"></i><span>Collapse</span></button>
+    </div>
+  </aside>
+
+  <!-- ══ NAVBAR ════════════════════════════════════════════════ -->
+  <header class="navbar">
+    <button class="navbar-mobile-btn" id="mobileMenuBtn"><i class="bi bi-list"></i></button>
+    <div class="navbar-search"><i class="bi bi-search"></i><input type="text" placeholder="Filter by ID, camera, or type…"></div>
+    <div class="navbar-right">
+      <div class="soc-badge"><span class="soc-dot"></span><span>SOC LIVE</span></div>
+      <button class="notif-btn"><i class="bi bi-bell"></i><span class="notif-pip"></span></button>
+      <div class="user-chip">
+        <div><div class="user-chip-name">Command Center</div><div class="user-chip-role">Senior Operator</div></div>
+        <div class="user-avatar">SC</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ MAIN: 3-col triage layout ═══════════════════════════ -->
+  <main class="main" style="padding:0;overflow:hidden;">
+    <div class="triage-layout">
+
+      <!-- COL 1: Alert queue -->
+      <div class="triage-col" style="padding:18px 14px;">
+
+        <div class="flex-between mb-3">
+          <div class="flex items-center gap-2">
+            <i class="bi bi-shield-exclamation" style="font-size:15px;color:var(--text-sub);"></i>
+            <span style="font-size:13px;font-weight:700;">Alert Triage</span>
+            <span class="chip chip-red" style="font-size:9px;">3 PENDING</span>
+          </div>
+          <div class="flex gap-1">
+            <button class="btn btn-ghost" style="padding:4px 8px;font-size:11px;"><i class="bi bi-download"></i></button>
+            <button class="btn btn-ghost" style="padding:4px 8px;font-size:11px;"><i class="bi bi-three-dots"></i></button>
+          </div>
+        </div>
+
+        <div class="filter-tabs">
+          <button class="filter-tab active">All</button>
+          <button class="filter-tab">Critical</button>
+          <button class="filter-tab">Warning</button>
+          <button class="filter-tab">Resolved</button>
+        </div>
+
+        <!-- AL-9021 ACTIVE -->
+        <div class="alert-item active critical" id="alert9021" onclick="selectAlert('9021')">
+          <div class="alert-item-top"><span>AL-9021</span><span>14:22:01</span></div>
+          <div class="alert-item-body">
+            <div class="alert-thumb"></div>
+            <div>
+              <div class="alert-item-title">Unidentified Loitering</div>
+              <div class="alert-item-loc"><i class="bi bi-geo-alt-fill"></i>West Perimeter Gate</div>
+            </div>
+          </div>
+          <div class="alert-item-foot">
+            <span class="chip chip-red" style="font-size:9px;">Critical</span>
+            <span class="conf-inline"><i class="bi bi-lightning-charge-fill"></i>94.2%</span>
+            <span style="font-size:10.5px;color:var(--orange);font-family:var(--font-mono);">PENDING</span>
+          </div>
+        </div>
+
+        <!-- AL-9022 -->
+        <div class="alert-item" id="alert9022" onclick="selectAlert('9022')">
+          <div class="alert-item-top"><span>AL-9023</span><span>14:25:15</span></div>
+          <div class="alert-item-body">
+            <div class="alert-thumb" style="background:linear-gradient(135deg,#1a2235,#2a3555);"></div>
+            <div>
+              <div class="alert-item-title">Crowd Density Spike</div>
+              <div class="alert-item-loc"><i class="bi bi-geo-alt-fill"></i>Main Lobby Entrance</div>
+            </div>
+          </div>
+          <div class="alert-item-foot">
+            <span class="chip chip-orange" style="font-size:9px;">Warning</span>
+            <span class="conf-inline"><i class="bi bi-lightning-charge-fill"></i>88.5%</span>
+            <span style="font-size:10.5px;color:var(--orange);font-family:var(--font-mono);">PENDING</span>
+          </div>
+        </div>
+
+        <!-- AL-9023 resolved -->
+        <div class="alert-item" id="alert9023" onclick="selectAlert('9023')">
+          <div class="alert-item-top"><span>AL-9023</span><span>14:28:44</span></div>
+          <div class="alert-item-body">
+            <div class="alert-thumb" style="background:linear-gradient(135deg,#2a1a35,#3a2555);"></div>
+            <div>
+              <div class="alert-item-title">Fast Motion Detected</div>
+              <div class="alert-item-loc"><i class="bi bi-geo-alt-fill"></i>Parking Level B2</div>
+            </div>
+          </div>
+          <div class="alert-item-foot">
+            <span class="chip chip-blue" style="font-size:9px;">Info</span>
+            <span class="conf-inline"><i class="bi bi-lightning-charge-fill"></i>72.1%</span>
+            <span style="font-size:10.5px;color:var(--green);font-family:var(--font-mono);">RESOLVED</span>
+          </div>
+        </div>
+
+        <!-- AL-9024 critical -->
+        <div class="alert-item critical" id="alert9024" onclick="selectAlert('9024')">
+          <div class="alert-item-top"><span>AL-9024</span><span>14:31:02</span></div>
+          <div class="alert-item-body">
+            <div class="alert-thumb" style="background:linear-gradient(135deg,#1a2040,#2a3060);"></div>
+            <div>
+              <div class="alert-item-title">Unauthorized Door Access</div>
+              <div class="alert-item-loc"><i class="bi bi-geo-alt-fill"></i>Server Room Corridor</div>
+            </div>
+          </div>
+          <div class="alert-item-foot">
+            <span class="chip chip-red" style="font-size:9px;">Critical</span>
+            <span class="conf-inline" style="color:var(--red);"><i class="bi bi-lightning-charge-fill"></i>99.8%</span>
+            <span style="font-size:10.5px;color:var(--orange);font-family:var(--font-mono);">PENDING</span>
+          </div>
+        </div>
+
+        <!-- AL-9025 -->
+        <div class="alert-item" id="alert9025" onclick="selectAlert('9025')">
+          <div class="alert-item-top"><span>AL-9025</span><span>14:35:10</span></div>
+          <div class="alert-item-body">
+            <div class="alert-thumb" style="background:linear-gradient(135deg,#1a2535,#2a3550);"></div>
+            <div>
+              <div class="alert-item-title">Object Obstruction</div>
+              <div class="alert-item-loc"><i class="bi bi-geo-alt-fill"></i>North Exit Ramp</div>
+            </div>
+          </div>
+          <div class="alert-item-foot">
+            <span class="chip chip-orange" style="font-size:9px;">Warning</span>
+            <span class="conf-inline"><i class="bi bi-lightning-charge-fill"></i>81.4%</span>
+            <span style="font-size:10.5px;color:var(--orange);font-family:var(--font-mono);">PENDING</span>
+          </div>
+        </div>
+
+        <div style="text-align:center;font-size:10px;color:var(--text-dim);padding:14px 0;font-family:var(--font-mono);letter-spacing:.5px;">— END OF QUEUE —</div>
+      </div>
+
+      <!-- COL 2: Detail panel -->
+      <div class="triage-col" style="padding:18px;">
+
+        <!-- Detail header -->
+        <div class="flex-between mb-4">
+          <div class="flex items-center gap-3">
+            <div style="width:38px;height:38px;border-radius:50%;background:var(--red-dim);border:1px solid rgba(239,68,68,0.3);display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--red);">
+              <i class="bi bi-play-circle-fill"></i>
+            </div>
+            <div>
+              <div style="font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;">
+                Unidentified Loitering <span class="chip chip-red" style="font-size:9px;">Critical</span>
+              </div>
+              <div style="font-size:11.5px;color:var(--text-muted);display:flex;gap:12px;margin-top:3px;font-family:var(--font-mono);">
+                <span><i class="bi bi-geo-alt-fill"></i> West Perimeter Gate</span>
+                <span><i class="bi bi-clock"></i> 2024-05-20 14:22:01</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-ghost" style="font-size:12px;"><i class="bi bi-arrows-fullscreen"></i> Full Cam</button>
+            <button class="btn btn-ghost" style="padding:7px 10px;"><i class="bi bi-gear"></i></button>
+          </div>
+        </div>
+
+        <!-- Video player -->
+        <div class="video-player mb-4">
+          <div class="video-frame">
+            <div class="video-hud-top">
+              <div class="rec-tag"><span class="rec-dot"></span>BUFFER REPLAY · 15S LOOP</div>
+              <div class="fps-tag">FPS: 30.2 · LATENCY: 112ms</div>
+            </div>
+            <div class="detection-box"></div>
+          </div>
+          <div class="video-controls">
+            <button><i class="bi bi-play-fill"></i></button>
+            <input type="range" class="video-seek" value="46">
+            <span class="video-time">00:07 / 00:15</span>
+            <button><i class="bi bi-arrow-counterclockwise"></i></button>
+            <button style="margin-left:auto;"><i class="bi bi-fullscreen"></i></button>
+          </div>
+        </div>
+
+        <!-- Sequence timeline -->
+        <div class="card mb-4">
+          <div class="card-hdr">
+            <span class="card-title"><i class="bi bi-diagram-3"></i>Sequence Timeline — MODEL: LSTM-V4</span>
+          </div>
+          <div style="padding:12px 16px;">
+            <div class="sequence-steps">
+              <div class="seq-step">
+                <div class="seq-icon done"><i class="bi bi-check-circle-fill"></i></div>
+                <span class="seq-label">Motion</span>
+              </div>
+              <div class="seq-step">
+                <div class="seq-icon done"><i class="bi bi-check-circle-fill"></i></div>
+                <span class="seq-label">Object: Human</span>
+              </div>
+              <div class="seq-step">
+                <div class="seq-icon active"><i class="bi bi-activity"></i></div>
+                <span class="seq-label">Behavior Loop</span>
+              </div>
+              <div class="seq-step">
+                <div class="seq-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                <span class="seq-label">Classification</span>
+              </div>
+              <div class="seq-step">
+                <div class="seq-icon"><i class="bi bi-shield-exclamation"></i></div>
+                <span class="seq-label">Alert Sent</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Incident description -->
+        <div class="card">
+          <div class="card-hdr">
+            <span class="card-title"><i class="bi bi-file-text"></i>Incident Description</span>
+          </div>
+          <div class="card-body" style="color:var(--text-sub);font-size:12.5px;line-height:1.7;">
+            Suspicious individual observed near restricted access point at West Perimeter Gate for an extended duration (45s) without presenting valid credentials. LSTM-V4 classified behavior as <strong style="color:var(--text);">Loitering</strong> with 94.2% confidence. Subject matches a previous watch-list profile flagged in session AI-0913.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- COL 3: Info panel -->
+      <div class="triage-col" style="padding:18px 14px;">
+
+        <!-- KPIs -->
+        <div class="grid grid-2 mb-4" style="gap:10px;">
+          <div style="background:var(--bg-root);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+            <div style="font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);margin-bottom:5px;font-family:var(--font-mono);">Duration</div>
+            <div style="font-size:22px;font-weight:700;color:var(--cyan);font-family:var(--font-mono);">45s</div>
+          </div>
+          <div style="background:var(--bg-root);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+            <div style="font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);margin-bottom:5px;font-family:var(--font-mono);">Confidence</div>
+            <div style="font-size:22px;font-weight:700;color:var(--green);font-family:var(--font-mono);">94.2%</div>
+          </div>
+        </div>
+
+        <!-- Activity audit -->
+        <div class="card mb-3">
+          <div class="card-hdr">
+            <span class="card-title"><i class="bi bi-clock-history"></i>Activity Audit</span>
+          </div>
+          <div class="card-body" style="padding:10px 14px;">
+
+            <div class="audit-row">
+              <div class="flex-between mb-1">
+                <span class="audit-who system" style="font-size:11px;">SYSTEM</span>
+                <span class="audit-time">14:22:10</span>
+              </div>
+              <div style="font-size:11px;color:var(--red);font-weight:600;font-family:var(--font-mono);margin-bottom:2px;">ANOMALY DETECTED</div>
+              <div style="font-size:11px;color:var(--text-muted);">LSTM classified as 'Loitering'</div>
+            </div>
+
+            <div class="audit-row">
+              <div class="flex-between mb-1">
+                <span class="audit-who operator" style="font-size:11px;">S. OPER_04</span>
+                <span class="audit-time">14:22:45</span>
+              </div>
+              <div style="font-size:11px;color:var(--blue);font-weight:600;font-family:var(--font-mono);margin-bottom:2px;">REVIEW STARTED</div>
+              <div style="font-size:11px;color:var(--text-muted);">Playback session initialized</div>
+            </div>
+
+            <div class="audit-row">
+              <div class="flex-between mb-1">
+                <span class="audit-who operator" style="font-size:11px;">S. OPER_04</span>
+                <span class="audit-time">14:23:12</span>
+              </div>
+              <div style="font-size:11px;color:var(--orange);font-weight:600;font-family:var(--font-mono);margin-bottom:2px;">NOTE ADDED</div>
+              <div style="font-size:11px;color:var(--text-muted);">Subject matches previous watch-list profile.</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Notes input -->
+        <div style="position:relative;margin-bottom:14px;">
+          <i class="bi bi-chat-square-text" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;pointer-events:none;"></i>
+          <input type="text" placeholder="Type an internal note…" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-sans);font-size:12.5px;padding:8px 12px 8px 32px;outline:none;transition:border-color var(--trans);" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+
+        <!-- Camera status -->
+        <div class="card">
+          <div class="card-hdr">
+            <span class="card-title"><i class="bi bi-camera-video"></i>Camera Status</span>
+            <span class="chip chip-green" style="font-size:9px;">Operational</span>
+          </div>
+          <div class="card-body" style="padding:10px 14px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);">
+              <span class="text-muted">Firmware</span>
+              <span class="text-mono" style="font-weight:600;">v4.11.2</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);">
+              <span class="text-muted">IP Address</span>
+              <span class="text-mono" style="font-weight:600;">192.168.1.104</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;">
+              <span class="text-muted">Last Maintenance</span>
+              <span class="text-mono" style="font-weight:600;">04/12/24</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ══ ACTION BAR ════════════════════════════════════════════ -->
+  <div class="action-bar">
+    <div class="action-agents">
+      <div class="agent-avs">
+        <div class="agent-av op">OP</div>
+        <div class="agent-av ai">AI</div>
+      </div>
+      <div>
+        <div class="agent-info-name">2 Agents Monitoring</div>
+        <div class="agent-info-sub">Active Triage Session · AL-9021</div>
+      </div>
+      <button class="btn btn-ghost" style="font-size:12px;"><i class="bi bi-trash3"></i> Dismiss</button>
+    </div>
+    <div class="action-btns">
+      <button class="btn btn-ghost" style="color:var(--orange);border-color:rgba(245,158,11,0.3);font-size:12.5px;"><i class="bi bi-flag-fill"></i> Escalate to Field</button>
+      <button class="btn btn-primary" style="background:var(--green);font-size:12.5px;"><i class="bi bi-check-circle-fill"></i> Mark Resolved</button>
+    </div>
+  </div>
+
+  <!-- ══ FOOTER ════════════════════════════════════════════════ -->
+  <footer class="footer" style="padding-bottom:0;position:fixed;bottom:0;left:0;right:0;">
+    <div class="footer-left">
+      <span>© 2024 PLITHOS ENTERPRISE</span>
+      <span><span class="uptime-dot"></span>UPTIME: 99.98%</span>
+      <span>AES-256 ENCRYPTED</span>
+    </div>
+    <div class="footer-right">
+      <span id="footerClock"></span>
+      <span>V.3.0.0-STABLE</span>
+    </div>
+  </footer>
+
+</div>
+
+<script src="js/plithos.js"></script>
+<script>
+function selectAlert(id) {
+  document.querySelectorAll('.alert-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('alert' + id);
+  if (el) el.classList.add('active');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+services:
+  plithos:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: plithos
+    init: true
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      PLITHOS_SECRET_KEY: change-this-secret
+      PLITHOS_DB_PATH: /app/data/plithos.db
+      PLITHOS_VIOLENCE_MODEL: /app/modelnew.h5
+      PLITHOS_VIOLENCE_ONNX: /app/modelnew.onnx
+      PLITHOS_SMOKING_MODEL: "/app/weights (1).pt"
+      PLITHOS_FIRE_MODEL: /app/Fire_best.pt
+      PLITHOS_PERSON_MODEL: /app/yolov8n.pt
+    volumes:
+      - ./data:/app/data
+    command: ["python", "server.py", "--host", "0.0.0.0", "--port", "5000"]
+    # Direct USB camera passthrough is practical on Linux hosts.
+    # On Windows Docker Desktop, local webcam indexes like 0/1 may not be available inside the container.
+    # For Windows, use IP/RTSP camera sources or run the app natively if you need direct webcam capture.
+    # devices:
+    #   - /dev/video0:/dev/video0

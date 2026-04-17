@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plithos — Analytics</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="css/plithos.css" rel="stylesheet">
+</head>
+<body>
+<div class="overlay-bg" id="overlayBg"></div>
+
+<div class="shell" id="shell">
+
+  <!-- ══ SIDEBAR ═══════════════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="bi bi-shield-check"></i></div>
+      <span class="sidebar-logo-text">Plithos</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-title">Operations</div>
+      <a href="index.html" class="nav-item"><i class="bi bi-grid-1x2-fill"></i><span class="nav-label">Dashboard</span></a>
+      <a href="monitor.html" class="nav-item"><i class="bi bi-camera-video-fill"></i><span class="nav-label">Live Monitor</span></a>
+      <a href="alert-triage.html" class="nav-item"><i class="bi bi-exclamation-triangle-fill"></i><span class="nav-label">Alert Triage</span><span class="nav-badge">3</span></a>
+      <div class="sidebar-section-title">Intelligence</div>
+      <a href="analytics.html" class="nav-item active"><i class="bi bi-bar-chart-line-fill"></i><span class="nav-label">Analytics</span></a>
+      <a href="#" class="nav-item"><i class="bi bi-cpu-fill"></i><span class="nav-label">AI Models</span></a>
+      <div class="sidebar-section-title">System</div>
+      <a href="#" class="nav-item"><i class="bi bi-gear-fill"></i><span class="nav-label">Settings</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="cloud-widget">
+        <div class="cloud-label"><span>Cloud Budget</span><i class="bi bi-cloud-check" style="color:var(--green);"></i></div>
+        <div class="cloud-bar-track"><div class="cloud-bar-fill"></div></div>
+        <div class="cloud-budget">$42.50 / $100.00</div>
+      </div>
+      <button class="collapse-trigger" id="collapseBtn"><i class="bi bi-chevron-left"></i><span>Collapse</span></button>
+    </div>
+  </aside>
+
+  <!-- ══ NAVBAR ════════════════════════════════════════════════ -->
+  <header class="navbar">
+    <button class="navbar-mobile-btn" id="mobileMenuBtn"><i class="bi bi-list"></i></button>
+    <div class="navbar-search"><i class="bi bi-search"></i><input type="text" placeholder="Search cameras, alerts, logs…"></div>
+    <div class="navbar-right">
+      <div class="soc-badge"><span class="soc-dot"></span><span>SOC LIVE</span></div>
+      <button class="notif-btn"><i class="bi bi-bell"></i><span class="notif-pip"></span></button>
+      <div class="user-chip">
+        <div><div class="user-chip-name">Command Center</div><div class="user-chip-role">Senior Operator</div></div>
+        <div class="user-avatar">SC</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ MAIN ══════════════════════════════════════════════════ -->
+  <main class="main">
+
+    <div class="page-hdr">
+      <div class="page-hdr-left">
+        <h1>Operational Analytics</h1>
+        <p>Deep-dive into historical anomaly patterns and model efficacy.</p>
+      </div>
+      <div class="page-hdr-right">
+        <div class="time-filter">
+          <button class="time-btn">1h</button>
+          <button class="time-btn">24h</button>
+          <button class="time-btn active">7d</button>
+          <button class="time-btn">30d</button>
+        </div>
+        <button class="btn btn-ghost"><i class="bi bi-funnel"></i> Filters</button>
+        <button class="btn btn-primary"><i class="bi bi-download"></i> Export CSV</button>
+      </div>
+    </div>
+
+    <!-- KPI row -->
+    <div class="grid grid-4 mb-5 fade-up">
+      <div class="kpi green fade-up-1">
+        <div class="kpi-icon green"><i class="bi bi-crosshair"></i></div>
+        <span class="kpi-trend up"><i class="bi bi-arrow-up-short"></i>2.4%</span>
+        <div class="kpi-label">Model Precision</div>
+        <div class="kpi-value">94.2%</div>
+      </div>
+      <div class="kpi orange fade-up-2">
+        <div class="kpi-icon orange"><i class="bi bi-clock-history"></i></div>
+        <span class="kpi-trend warn"><i class="bi bi-arrow-up-short"></i>12%</span>
+        <div class="kpi-label">Avg Inference Latency</div>
+        <div class="kpi-value">18.5ms</div>
+      </div>
+      <div class="kpi cyan fade-up-3">
+        <div class="kpi-icon cyan"><i class="bi bi-graph-up-arrow"></i></div>
+        <span class="kpi-trend up"><i class="bi bi-arrow-up-short"></i>0.01%</span>
+        <div class="kpi-label">System Uptime</div>
+        <div class="kpi-value">99.98%</div>
+      </div>
+      <div class="kpi blue fade-up-4">
+        <div class="kpi-icon blue"><i class="bi bi-bullseye"></i></div>
+        <span class="kpi-trend up"><i class="bi bi-arrow-up-short"></i>5.2%</span>
+        <div class="kpi-label">Detection Confidence</div>
+        <div class="kpi-value">88.7%</div>
+      </div>
+    </div>
+
+    <!-- Charts row 1: Anomaly timeline + Radar -->
+    <div class="grid grid-8-4 mb-4 fade-up fade-up-2">
+      <div class="chart-wrap">
+        <div class="flex-between mb-1">
+          <div>
+            <div class="chart-wrap-title">Anomaly Frequency Timeline</div>
+            <div class="chart-wrap-sub">Event counts vs. baseline model confidence</div>
+          </div>
+          <button class="btn btn-ghost" style="padding:4px 8px;font-size:11px;"><i class="bi bi-arrows-fullscreen"></i></button>
+        </div>
+        <div style="position:relative;height:240px;">
+          <canvas id="anomalyChart"></canvas>
+        </div>
+        <div class="chart-legend">
+          <span><span class="legend-dot" style="background:var(--blue);"></span>Total Events</span>
+          <span><span class="legend-dot" style="background:var(--purple);"></span>Model Confidence</span>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-wrap-title">Behavior Classification</div>
+        <div class="chart-wrap-sub">Distribution by threat category</div>
+        <div style="position:relative;height:240px;">
+          <canvas id="radarChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts row 2: Resources + Runtime -->
+    <div class="grid grid-6-6 mb-5 fade-up fade-up-3">
+      <div class="chart-wrap">
+        <div class="chart-wrap-title"><i class="bi bi-gpu-card" style="margin-right:7px;color:var(--pink||'#ec4899');"></i>Inference Pipeline Resources</div>
+        <div class="chart-wrap-sub" style="margin-bottom:14px;">GPU / CPU / RAM utilization across inference nodes</div>
+        <div style="position:relative;height:220px;">
+          <canvas id="resourceChart"></canvas>
+        </div>
+        <div class="chart-legend">
+          <span><span class="legend-dot" style="background:#ec4899;"></span>GPU Load</span>
+          <span><span class="legend-dot" style="background:var(--cyan);"></span>CPU Load</span>
+          <span><span class="legend-dot" style="background:var(--purple);"></span>RAM Usage</span>
+        </div>
+      </div>
+
+      <div class="chart-wrap">
+        <div class="chart-wrap-title"><i class="bi bi-cpu" style="margin-right:7px;"></i>Model Runtime Metrics</div>
+        <div class="chart-wrap-sub" style="margin-bottom:16px;">Live performance per inference stage</div>
+
+        <div class="metric-row">
+          <div class="metric-row-hdr">
+            <span class="metric-row-name">MobileNetV3 Feature Extraction</span>
+            <span class="metric-row-val">4.2ms</span>
+          </div>
+          <div class="prog-track mb-1"><div class="prog-fill green" style="width:85%;"></div></div>
+          <div class="metric-row-foot">
+            <span class="metric-status-chip healthy">Healthy</span>
+            <span class="text-muted text-xs text-mono">CONF: 98%</span>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-row-hdr">
+            <span class="metric-row-name">LSTM Sequence Classifier</span>
+            <span class="metric-row-val">12.8ms</span>
+          </div>
+          <div class="prog-track mb-1"><div class="prog-fill cyan" style="width:70%;"></div></div>
+          <div class="metric-row-foot">
+            <span class="metric-status-chip optimized">Optimized</span>
+            <span class="text-muted text-xs text-mono">CONF: 92%</span>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-row-hdr">
+            <span class="metric-row-name">Alert Pipeline Latency</span>
+            <span class="metric-row-val">155ms</span>
+          </div>
+          <div class="prog-track mb-1"><div class="prog-fill orange" style="width:55%;"></div></div>
+          <div class="metric-row-foot">
+            <span class="metric-status-chip warning">Warning</span>
+            <span class="text-muted text-xs text-mono">CONF: 85%</span>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-row-hdr">
+            <span class="metric-row-name">Dataset Drift Index</span>
+            <span class="metric-row-val">0.02</span>
+          </div>
+          <div class="prog-track mb-1"><div class="prog-fill green" style="width:90%;"></div></div>
+          <div class="metric-row-foot">
+            <span class="metric-status-chip healthy">Healthy</span>
+            <span class="text-muted text-xs text-mono">CONF: 85%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cloud Infrastructure -->
+    <div class="mb-3 fade-up fade-up-4">
+      <div class="section-title">Cloud Infrastructure & Expenditure</div>
+      <div class="section-sub">Real-time AWS resource tracking and monthly cost forecasting.</div>
+    </div>
+
+    <div class="grid grid-8-4 mb-4 fade-up fade-up-5">
+      <div>
+        <div class="grid grid-2 mb-3" style="gap:12px;">
+          <div class="cloud-resource">
+            <div class="cloud-resource-hdr">
+              <span class="cloud-resource-name"><i class="bi bi-eye"></i>AWS Rekognition</span>
+              <span class="cloud-resource-cost">$2,450.00</span>
+            </div>
+            <div class="prog-track mb-1"><div class="prog-fill green" style="width:85%;"></div></div>
+            <div class="cloud-quota">QUOTA: 85% USED</div>
+          </div>
+          <div class="cloud-resource">
+            <div class="cloud-resource-hdr">
+              <span class="cloud-resource-name"><i class="bi bi-hdd"></i>S3 Media Storage</span>
+              <span class="cloud-resource-cost">$1,120.50</span>
+            </div>
+            <div class="prog-track mb-1"><div class="prog-fill orange" style="width:92%;"></div></div>
+            <div class="cloud-quota warn"><i class="bi bi-arrow-up-short"></i>QUOTA: 92% — LIMIT NEAR</div>
+          </div>
+          <div class="cloud-resource">
+            <div class="cloud-resource-hdr">
+              <span class="cloud-resource-name"><i class="bi bi-database"></i>DynamoDB Logs</span>
+              <span class="cloud-resource-cost">$340.20</span>
+            </div>
+            <div class="prog-track mb-1"><div class="prog-fill blue" style="width:45%;"></div></div>
+            <div class="cloud-quota">QUOTA: 45% USED</div>
+          </div>
+          <div class="cloud-resource">
+            <div class="cloud-resource-hdr">
+              <span class="cloud-resource-name"><i class="bi bi-server"></i>EC2 Compute G5</span>
+              <span class="cloud-resource-cost">$4,890.00</span>
+            </div>
+            <div class="prog-track mb-1"><div class="prog-fill cyan" style="width:78%;"></div></div>
+            <div class="cloud-quota">QUOTA: 78% USED</div>
+          </div>
+        </div>
+        <div class="projected-row">
+          <div><div class="projected-lbl">Total Projected (MTD)</div><div class="projected-amt">$8,800.70</div></div>
+          <span class="projected-chg">↓ 4.2% vs last month</span>
+          <a href="#" class="btn btn-ghost" style="margin-left:auto;font-size:12px;">View Billing Portal</a>
+        </div>
+      </div>
+
+      <div class="latency-panel">
+        <div class="text-xs text-mono" style="color:var(--cyan);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;">Latency Efficiency</div>
+        <div class="latency-big">14.2ms</div>
+        <div class="latency-sub"><i class="bi bi-lightning-charge"></i> Global API Latency</div>
+        <div class="latency-route"><span class="latency-region">US-EAST-1</span><span class="latency-ms">8ms</span></div>
+        <div class="latency-route"><span class="latency-region">US-WEST-2</span><span class="latency-ms">12ms</span></div>
+        <div class="latency-route"><span class="latency-region">EU-CENTRAL-1</span><span class="latency-ms">38ms</span></div>
+        <button class="btn btn-danger w-full" style="margin-top:14px;justify-content:center;">Optimize Routes</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ══ FOOTER ════════════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="footer-left">
+      <span>© 2024 PLITHOS ENTERPRISE</span>
+      <span><span class="uptime-dot"></span>UPTIME: 99.98%</span>
+      <span>AES-256 ENCRYPTED</span>
+    </div>
+    <div class="footer-right">
+      <span id="footerClock"></span>
+      <span>V.3.0.0-STABLE</span>
+    </div>
+  </footer>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="js/plithos.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  Chart.defaults.color = '#475569';
+  Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+  Chart.defaults.font.size = 10;
+  Chart.defaults.plugins.legend.display = false;
+
+  const gridColor = 'rgba(255,255,255,0.04)';
+  const tooltip = {
+    backgroundColor: '#0f1319',
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    titleColor: '#e2e8f0',
+    bodyColor: '#94a3b8',
+    padding: 10,
+    cornerRadius: 6,
+  };
+
+  // Anomaly Timeline
+  new Chart(document.getElementById('anomalyChart'), {
+    type: 'line',
+    data: {
+      labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+      datasets: [
+        {
+          label: 'Total Events',
+          data: [42, 67, 53, 91, 78, 55, 84],
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59,130,246,0.08)',
+          fill: true, tension: 0.4, borderWidth: 2,
+          pointRadius: 4, pointBackgroundColor: '#3b82f6',
+          pointBorderColor: '#050709', pointBorderWidth: 2,
+        },
+        {
+          label: 'Model Confidence',
+          data: [88, 91, 89, 95, 93, 90, 96],
+          borderColor: '#8b5cf6',
+          backgroundColor: 'transparent',
+          fill: false, tension: 0.4, borderWidth: 2,
+          borderDash: [5,4],
+          pointRadius: 4, pointBackgroundColor: '#8b5cf6',
+          pointBorderColor: '#050709', pointBorderWidth: 2,
+          yAxisID: 'y1',
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      scales: {
+        x: { grid:{color:gridColor}, ticks:{color:'#475569'} },
+        y: { position:'left', min:0, max:120, grid:{color:gridColor}, ticks:{color:'#475569',stepSize:30} },
+        y1: { position:'right', min:80, max:100, grid:{display:false}, ticks:{color:'#475569',stepSize:5} }
+      },
+      plugins: { tooltip }
+    }
+  });
+
+  // Radar
+  new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: {
+      labels: ['Fights','Littering','Suspicious','Loitering','Unauthorized'],
+      datasets: [{
+        label: 'Threat Distribution',
+        data: [40,65,80,75,55],
+        backgroundColor: 'rgba(6,182,212,0.15)',
+        borderColor: '#06b6d4',
+        borderWidth: 2,
+        pointBackgroundColor: '#06b6d4',
+        pointBorderColor: '#050709', pointBorderWidth: 2, pointRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        r: {
+          grid:{color:gridColor},
+          angleLines:{color:gridColor},
+          ticks:{display:false},
+          pointLabels:{color:'#94a3b8', font:{size:10,weight:'600'}},
+          suggestedMin:0, suggestedMax:100
+        }
+      },
+      plugins: { tooltip }
+    }
+  });
+
+  // Resources Bar
+  new Chart(document.getElementById('resourceChart'), {
+    type: 'bar',
+    data: {
+      labels: ['GPU-01','GPU-02','GPU-03','Inference'],
+      datasets: [
+        { label:'GPU Load',  data:[72,58,85,45], backgroundColor:'#ec4899', borderRadius:4, barPercentage:0.55, categoryPercentage:0.7 },
+        { label:'CPU Load',  data:[45,38,55,30], backgroundColor:'#06b6d4', borderRadius:4, barPercentage:0.55, categoryPercentage:0.7 },
+        { label:'RAM Usage', data:[60,45,70,50], backgroundColor:'#8b5cf6', borderRadius:4, barPercentage:0.55, categoryPercentage:0.7 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { grid:{color:gridColor}, ticks:{color:'#475569'} },
+        y: { min:0, max:100, grid:{color:gridColor}, ticks:{color:'#475569',stepSize:25} }
+      },
+      plugins: { tooltip }
+    }
+  });
+});
+</script>
+</body>
+</html>
